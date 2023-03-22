@@ -4,3 +4,4 @@ codeserver
 .DS_Store
 target
 .book/_build
+.idea
