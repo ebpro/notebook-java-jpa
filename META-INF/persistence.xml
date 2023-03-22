@@ -1,35 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <persistence xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
-    version="3.0">
+  <persistence xmlns="https://jakarta.ee/xml/ns/persistence" 
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+               version="3.0">
   
-      <persistence-unit name="sensors_pu" transaction-type="RESOURCE_LOCAL">
+      <!-- Each persistence Unit (PU) has a unique name -->
+      <persistence-unit name="demojpa_pu" transaction-type="RESOURCE_LOCAL">
           
+          <!-- The entry class of the JPA implantation (the JPA provider) -->
           <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+          <!--provider>org.hibernate.jpa.HibernatePersistenceProvider</provider-->
+
+          <!-- It is possible to include all entities from the same Jar -->
+          <exclude-unlisted-classes>false</exclude-unlisted-classes>
           
-          <class>fr.univtln.bruno.Location</class>
-          <class>fr.univtln.bruno.Sensor</class>
+          <!-- otherwise they have to be listed here -->
+          <class>fr.univtln.bruno.demos.jpa.samples.Customer01</class>
+          <class>fr.univtln.bruno.demos.jpa.samples.Customer02</class>            
   
           <properties>
-              <!-- Les paramètres de connexions -->
-              <!--property name="jakarta.persistence.target-database" value="H2" /-->
+              <!-- RDBMS connection parameters -->
               <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver" />
-              <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:tcp://localhost/~/sensors;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"/>
+              <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:tcp://localhost/~/demoJPA;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"/>      
+              <!--property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver " />
+              <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost/demojpa"/-->
+              
               <property name="jakarta.persistence.jdbc.user" value="demoJPA" />
               <property name="jakarta.persistence.jdbc.password" value="demoJPA" />
   
-              <!-- Les options de générations des tables -->
+              <!-- Table generation options -->
+              <!-- Direct creation : change at least to create in production -->
               <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create" />
+              
+              <!-- Also create DDL scripts -->
               <property name="jakarta.persistence.schema-generation.scripts.action" value="drop-and-create" />
-              <property name="jakarta.persistence.schema-generation.scripts.create-target" value="sensors-create.ddl" />
-              <property name="jakarta.persistence.schema-generation.scripts.drop-target" value="sensors-drop.ddl" />
-  
+              <property name="jakarta.persistence.schema-generation.scripts.create-target" value="demoJPA-create.ddl" />
+              <property name="jakarta.persistence.schema-generation.scripts.drop-target" value="demoJPA-drop.ddl" />
+
+              <!-- Possibility to execute a SQL script at startup -->
+              <!--property name="jakarta.persistence.sql-load-script-source" value="insert.sql"/-->
+              
               <!-- Specific to eclipselink -->
               <!--property name="eclipselink.target-database" value="org.eclipse.persistence.platform.database.H2Platform"/-->
+              <!--property name="eclipselink.target-database" value="PostgreSQL" /-->
               <property name="eclipselink.logging.level.sql" value="FINEST"/>
               <property name="eclipselink.logging.parameters" value="true"/>
   
-              <!--property name="jakarta.persistence.sql-load-script-source" value="insert.sql"/-->
+
           </properties>
       </persistence-unit>
+      
+      
   </persistence>

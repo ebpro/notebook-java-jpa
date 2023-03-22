@@ -1,0 +1,15 @@
+package fr.univtln.bruno.demos.jpa.hello.samples.ex_entity;
+
+import fr.univtln.bruno.demos.jpa.hello.DatabaseManager;
+import jakarta.persistence.EntityManager;
+
+public class CustomerTest {
+    public static void main(String[] args) {
+        CustomerGenerator.generateCustomer(1000);
+
+        try (EntityManager anotherEntityManager = DatabaseManager.ENTITY_MANAGER_FACTORY.createEntityManager()) {
+            System.out.println(anotherEntityManager.find(Customer.class, 1L));
+        }
+
+    }
+}

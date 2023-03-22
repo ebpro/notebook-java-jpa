@@ -1,0 +1,12 @@
+format: jb-book
+root: README.ipynb
+options:  # The options key will be applied to all chapters, but not sub-sections
+    numbered: True
+chapters: 
+  - file: 00-jpa-intro.ipynb
+  - file: 01-jpa-associations.ipynb
+  - file: 02-jpa-heritage.ipynb
+  - file: 03-jpa-interrogation.ipynb
+  - file: 04-jpa-cycle.ipynb
+  - file: 05-jpa-ids.ipynb
+

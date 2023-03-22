@@ -1,3 +1,6 @@
 codeserver
 .ipynb_checkpoints
 .project
+.DS_Store
+target
+.book/_build
