@@ -1,0 +1,17 @@
+---
+title: Java Persistance
+listing:
+    contents: 
+     - cours
+     - exercices
+    categories: cloud
+    fields: 
+     - date
+     - title
+     - description
+     - reading-time
+     - categories
+     - file-modified
+    sort: "filename"
+    image-placeholder: "/_assets/images/logo-cm-java.jpg"
+---
