@@ -1,0 +1,3 @@
+[submodule "quarto-utils"]
+	path = quarto-utils
+	url = git@github.com:ebpro/quarto-utils.git

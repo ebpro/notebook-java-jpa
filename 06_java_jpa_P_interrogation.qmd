@@ -1,0 +1,63 @@
+---
+title: 'TP JPA : Interrogation avancée avec une bibliothèque universitaire'
+description: Mise en pratique des différentes techniques d'interrogation JPA
+categories:  
+  - Java
+  - JPA
+  - I211
+  - TP
+code-annotations: below
+provide_notes: true
+provide_slides: false
+jupyter: java-lts
+---
+
+## Objectif
+
+Implanter un système de gestion de bibliothèque universitaire.
+Illuster l'utilisation des identifiants, de l'héritage et des requêtes JPQL.
+
+## Modèle de données
+
+Utilisez le projet : https://github.com/ebpro/sample-jpalibrary 
+
+- Etudier le projet
+- Etudier le schéma relationnel généré
+- Changer la stratégie d'héritage pour `Document` et observer les différences.
+- Etudier les IDs
+
+## Exercices d'interrogation
+
+### Requêtes JPQL basiques
+
+- Lister tous les documents d'un auteur
+- Trouver les emprunts en cours
+- Compter le nombre d'emprunts par utilisateur
+
+### Projections et DTOs
+
+- Créer un DTO pour les statistiques d'emprunt
+- Utiliser des projections pour les résumés de documents
+
+### Named Queries
+
+- Définir des requêtes nommées pour les recherches fréquentes
+
+### (Facultatif) Entity Graphs
+
+- Optimiser le chargement des associations avec les Entity Graphs
+
+### (Facultatif) Criteria API
+
+- Implémenter une recherche via l'API
+- Construire des requêtes dynamiques
+
+## Pattern Repository
+
+- Ajouter un repository pour gérer les différentes entités. 
+- Mettez à jour et compléter si besoin les générateurs de données.
+
+## (Facultatif) pour aller plus loin
+
+- Contrôler vos entités avec des Bean Validation : https://bruno.univ-tln.fr/notebooks-develop/notebook-java-beanvalidation/ 
+- Ajouter des tests unitaires et d'intégration

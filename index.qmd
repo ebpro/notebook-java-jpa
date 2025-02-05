@@ -1,17 +1,12 @@
 ---
-title: Java Persistance
-listing:
-    contents: 
-     - cours
-     - exercices
-    categories: cloud
-    fields: 
-     - date
-     - title
-     - description
-     - reading-time
-     - categories
-     - file-modified
-    sort: "filename"
-    image-placeholder: "/_assets/images/logo-cm-java.jpg"
+title: Jakarta Persistence
+description: Introduction au mapping objet-relationnel avec Jakarta Persistence
+
+metadata-files:
+  - quarto-utils/index-listing.yml
+
+listing: true
+
+jupyter: java-lts
 ---
+

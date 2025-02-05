@@ -1,0 +1,388 @@
+---
+title: L'héritage avec Jakarta Persistence 
+description: Contrôle de l'héritage avec Jakarta Persistence
+categories:
+  - Java
+  - I211
+  - Lecture
+  - JPA
+provide_notes: true
+provide_slides: true
+jupyter: java-lts
+---
+
+{{< include ./quarto-utils/_version.qmd >}}
+{{< include ./_init.qmd >}}
+
+::: {.content-visible when-profile="notes"}
+JPA supporte plusieurs stratégies d'héritage, chacune adaptée à des besoins spécifiques en termes de structure de base de données.
+
+En utilisant l'annotations `@Inheritance` il est possible de spécifier comment les entités héritées seront stockées dans la base de données, que ce soit dans une table unique regroupant toutes les entités, des tables distinctes pour chaque classe, ou une approche intermédiaire.
+:::
+
+::: {.content-visible when-profile="slides"}
+## Annotation @Inheritance
+
+- JPA supporte plusieurs stratégies d'héritage pour mapper les hiérarchies d'objets en bases de données relationnelles.
+- `@Inheritance` permet de spécifier la stratégie d'héritage à utiliser pour une hiérarchie de classes.
+
+:::
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-uml-personnes
+//| fig-cap: La hiérarchie des personnes
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="""
+@startuml
+
+class Person {
+    - long id;
+    - String name;
+}
+
+enum Status {
+    ACTIVE
+    ALUMNI
+  }
+
+class Student extends Person {    
+}
+
+Student *- Status
+
+
+class Teacher extends Person {
+    - double salary
+}
+@enduml""";
+    
+
+IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);  
+return null;
+```
+
+## Une seule relation par hiérarchie
+
+::: {.content-visible when-profile="notes"}
+Par défault JPA défini une seule relation pour une hiérarchie d'héritage. Toutes les classes de la hiérarchie sont mappées vers une seule table dans la base de données. La table contient des colonnes pour toutes les propriétés de toutes les classes de la hiérarchie. Un discriminant (généralement une colonne spécifiant le type) est utilisé pour différencier les enregistrements appartenant à différentes classes.
+:::
+
+::: {.content-visible when-profile="slides"}
+**Table unique (Single table) :**
+   - Toutes les classes sont mappées à une seule table.
+   - `@Inheritance(strategy = InheritanceType.SINGLE_TABLE)`.
+
+:::
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-onetomanyb
+//| fig-cap: La relation Personne
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_heritage1"),script);  
+return null;
+```
+
+```{java}
+//| output: false
+//| echo: false
+//| vscode: {languageId: java}
+import jakarta.persistence.*;
+import fr.univtln.bruno.demos.jpa.hello.DatabaseManager;
+
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage1.Person;
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage1.Student;
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage1.Teacher;
+```
+
+```{java}
+//| output: false
+//| echo: false
+//| vscode: {languageId: java}
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_associations.ex_onetomany_a.*;
+EntityManagerFactory emf = DatabaseManager.getEntityManagerFactory();
+final Logger log = LoggerFactory.getLogger("notebook");
+```
+
+```{java}
+//| vscode: {languageId: java}
+try (EntityManager entityManager = emf.createEntityManager()) {
+    entityManager.getTransaction().begin();
+    List<Person> personList = List.of(Person.builder().name("P1").build(),
+        Student.builder().name("S1").status(Student.Status.ACTIVE).build(),
+        Teacher.builder().name("T1").salary(3000).build());
+    personList.forEach(entityManager::persist);
+    entityManager.getTransaction().commit();
+    
+    TypedQuery<Person> query = entityManager.createQuery("""
+                           SELECT p 
+                           FROM Person p""",
+                           Person.class);
+    System.out.println("Persons : %s".formatted(query.getResultList()
+        .stream().map(Person::toString)
+        .collect(Collectors.joining(","))));
+    
+    TypedQuery<Teacher> query2 = entityManager.createQuery("""
+                           SELECT p 
+                           FROM Teacher p""",
+                           Teacher.class);
+    /*System.out.println("Teachers : %s".formatted(query2.getResultList()
+        .stream().map(Teacher::toString)
+        .collect(Collectors.joining(","))));*/
+} 
+```
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="""
+SELECT * FROM EX_HERITAGE1.Person""";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
+  List.of(""),script);
+return null;
+```
+
+
+::: {.content-visible when-profile="slides"}
+### Classe mère
+
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage1/Person.java";
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Person"),script);
+return null;   
+```
+
+:::
+
+::: {.content-visible when-profile="slides"}
+### Classe fille 1
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage1/Student.java";
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Student"),script);
+return null;   
+```
+
+:::
+
+::: {.content-visible when-profile="slides"}
+### Classe fille 2
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage1/Teacher.java";
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Teacher"),script);
+return null;   
+```
+
+:::
+
+## Une relation par classe (strategies JOINED ou TABLE_PER_CLASS)
+
+::: {.content-visible when-profile="notes"}
+Mais il est aussi possible de demander une relation par classe.
+
+Avec `@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)` chaque classe de la hiérarchie est mappée vers sa propre table dans la base de données. Les tables ne contiennent que les colonnes nécessaires pour stocker les propriétés spécifiques à chaque classe.
+
+Avec `@Inheritance(strategy = InheritanceType.JOINED)` chaque classe de la hiérarchie est mappée vers une table distincte, et il y a également une table commune (table de la superclasse) contenant les propriétés partagées par toutes les sous-classes. Les tables des sous-classes contiennent uniquement les colonnes spécifiques à chaque classe, et une clé étrangère relie ces tables à la table commune.
+:::
+
+::: {.content-visible when-profile="slides"}
+1. **Table par classe (Table per class) :**
+   - Chaque classe est mappée à sa propre table.
+   - Spécifié avec `@Inheritance(strategy = InheritanceType.JOINED)`.
+
+2. **Table par sous-classe (Table per subclass) :**
+   - Chaque classe, y compris les sous-classes, a sa propre table.
+   - Défini avec `@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)`.
+:::
+
+::: {.content-visible when-profile="slides"}
+
+### Schéma
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-heritage2
+//| fig-cap: Les relations de Personnes
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_heritage2"),script);  
+return null;
+```
+
+```{java}
+//| echo: false
+//| output: false
+//| vscode: {languageId: java}
+import jakarta.persistence.*;
+import fr.univtln.bruno.demos.jpa.hello.DatabaseManager;
+
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage2.Person;
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage2.Student;
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage2.Teacher;
+```
+
+```{java}
+//| vscode: {languageId: java}
+try (EntityManager entityManager = emf.createEntityManager()) {
+    entityManager.getTransaction().begin();
+    List<Person> personList = List.of(Person.builder().name("P1").build(),
+        Student.builder().name("S1").status(Student.Status.ACTIVE).build(),
+        Teacher.builder().name("T1").salary(3000).build());
+    personList.forEach(entityManager::persist);
+    entityManager.getTransaction().commit();
+
+    
+    TypedQuery<Person> query = entityManager.createQuery("""
+                           SELECT p 
+                           FROM fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage2.Person p""",
+                           Person.class);
+    log.info("Persons : %s".formatted(query.getResultList()
+        .stream().map(Person::toString)
+        .collect(Collectors.joining(","))));
+    
+    TypedQuery<Teacher> query2 = entityManager.createQuery("""
+                           SELECT p 
+                           FROM fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage2.Teacher p""",
+                           Teacher.class);
+    log.info("Teachers : %s".formatted(query2.getResultList()
+        .stream().map(Teacher::toString)
+        .collect(Collectors.joining(","))));
+} 
+```
+
+:::: {.columns}
+
+::: {.column width="30%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="""
+SELECT * FROM EX_HERITAGE2.Person""";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
+  List.of(""),script);
+return null;
+```
+
+:::
+
+::: {.column width="30%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="""
+SELECT * FROM EX_HERITAGE2.STUDENT""";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
+  List.of(""),script);
+return null;
+```
+
+:::
+::: {.column width="30%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="""
+SELECT * FROM EX_HERITAGE2.TEACHER""";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
+  List.of(""),script);
+return null;
+```
+
+:::
+::::
+
+::: {.content-visible when-profile="slides"}
+### Classe mère
+:::
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage2/Person.java";
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Person"),script);
+return null; 
+```
+
+:::
+
+::: {.content-visible when-profile="slides"}
+### Classe fille 1
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage2/Student.java";
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Student"),script);
+return null;
+```
+
+:::
+
+::: {.content-visible when-profile="slides"}
+### Classe fille 2
+:::
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage2/Teacher.java";
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Teacher"),script);
+return null;
+```
+
+## Conclusion
+
+::: {.content-visible when-profile="notes"}
+En résumé, la stratégie JOINED privilégie la normalisation des données en utilisant une table commune pour les propriétés partagées, tandis que la stratégie TABLE_PER_CLASS favorise l'indépendance des tables pour chaque classe.
+:::
+
+::: {.content-visible when-profile="slides"}
+- `@JOINED` privilégie la normalisation des données en utilisant une table commune pour les propriétés partagées.
+- `@TABLE_PER_CLASS` favorise l'indépendance des tables pour chaque classe.
+
+
+:::
+
+

@@ -1,0 +1,161 @@
+---
+title: Le cycle de vie des entités JPA
+description: Réaction aux évènements liés au cycle de vie des entités JPA.
+categories:
+  - Java
+  - I211
+  - Lecture
+  - JPA
+provide_notes: true
+provide_slides: true
+jupyter: java-lts
+---
+
+{{< include ./quarto-utils/_version.qmd >}}
+{{< include ./_init.qmd >}}
+
+## Cycle de vie d'une entité 
+
+Le cycle de vie d'une entité JPA définit les différents états possibles d'une instance (`New`, `Managed`, `Detached`, `Removed`) et les transitions entre ces états via les opérations de l'EntityManager (`persist()`, `merge()`, `remove()`, `detach()`), permettant ainsi le suivi et la gestion de la synchronisation entre les objets Java en mémoire et leur représentation en base de données.
+
+```{mermaid}
+stateDiagram-v2
+    [*] --> New: new Entity()
+    New --> Managed: persist()
+    Managed --> Detached: detach()/close()
+    Managed --> Removed: remove()
+    Detached --> Managed: merge()
+    Managed --> [*]: clear()
+    Removed --> [*]
+```
+
+## Etats d'une entité
+
+- New (Transient)
+    - Nouvelle instance Java
+    - Inconnue de JPA
+    - Pas d'identifiant assigné
+- Managed (Persistent)
+    - Gérée par EntityManager
+    - Synchronisée avec la BD
+    - Modifications automatiquement persistées
+- Detached
+    - Plus gérée par EntityManager
+    - Modifications non suivies
+    - Nécessite merge() pour synchroniser
+- Removed
+    - Marquée pour suppression
+    - Sera supprimée en BD
+
+## Callbacks du cycle de vie
+
+Comme le cycle de vie des entités géré par JPA, des annotations spécifiques sont proposées pour exécuter des méthodes de Callback d'une entités à des moments spécifiques : 
+
+- Persistence
+    - `@PrePersist`: avant `persist()`
+    - `@PostPersist`: après `persist()`
+- Update
+    - `@PreUpdate`: avant modification
+    - `@PostUpdate`: après modification
+- Remove
+    - `@PreRemove`: avant suppression
+    - `@PostRemove`: après suppression
+- Load
+    - `@PostLoad`: après chargement
+
+## Callbacks sur l'entité
+
+- Annotations sur méthodes de l'entité
+- Exécutées automatiquement lors des transitions
+
+```java
+@Entity
+public class Customer {
+    @PrePersist
+    void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+}
+```
+
+```{java}
+//| output: false
+//| echo: false
+//| vscode: {languageId: java}
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_associations.ex_onetomany_a.*;
+EntityManagerFactory emf = DatabaseManager.getEntityManagerFactory();
+final Logger log = LoggerFactory.getLogger("notebook");
+```
+
+```{java}
+//| vscode: {languageId: java}
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_hook.Customer;
+
+try (EntityManager entityManager = emf.createEntityManager()) {
+                entityManager.getTransaction().begin();
+                Customer customer = Customer.of("Peter");
+                log.info(customer.toString());
+                entityManager.persist(customer);
+                customer.setName("Pierre");
+                entityManager.getTransaction().commit();
+                try (EntityManager anotherEM = emf.createEntityManager()) {
+                    log.info("FOUND " + anotherEM.find(Customer.class, 1L));
+                }
+                entityManager.getTransaction().begin();
+                entityManager.remove(customer);
+                entityManager.getTransaction().commit();
+            }
+```
+
+
+### Exemple : Listener
+
+Définir un ou des `Listener` : des classes dédiées à la réaction aux évènements du cycle de vie d'une entités.
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_hook/EntityMonitorListener.java";
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("EntityMonitorListener"),script);
+return null;       
+```
+
+
+### Exemple : Entité avec Listener
+
+Les associer à une ou plusieurs entités (`@EntityListeners`).
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_hook/CustomerWithListener.java";
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("CustomerWithListener"),script);
+return null;
+```
+
+```{java}
+//| vscode: {languageId: java}
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_hook.CustomerWithListener;
+
+try (EntityManager entityManager = emf.createEntityManager()) {
+
+                entityManager.getTransaction().begin();
+                CustomerWithListener customer = CustomerWithListener.of("Peter");
+                log.info(customer.toString());
+                entityManager.persist(customer);
+                customer.setName("Pierre");
+                entityManager.getTransaction().commit();
+
+                try (EntityManager anotherEM = emf.createEntityManager()) {
+                    log.info("FOUND " + anotherEM.find(CustomerWithListener.class, 1L));
+                }
+
+                entityManager.getTransaction().begin();
+                entityManager.remove(customer);
+                entityManager.getTransaction().commit();
+            }        
+```

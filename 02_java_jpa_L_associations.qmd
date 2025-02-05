@@ -1,0 +1,607 @@
+---
+title: Les associations entre entités avec JPA 
+description: Contrôles des relations entre entités avec JPA.
+categories:
+  - Java
+  - I211
+  - Lecture
+  - JPA
+provide_notes: true
+provide_slides: true
+jupyter: java-lts
+---
+
+{{< include ./quarto-utils/_version.qmd >}}
+{{< include ./_init.qmd >}}
+
+::: {.content-visible when-profile="notes"}
+JPA offre une prise en charge complète pour la gestion des relations entre entités de différents types, que ce soit en mode un-vers-un (OneToOne), un-vers-plusieurs (OneToMany), ou plusieurs-vers-plusieurs (ManyToMany). Ces relations peuvent être configurées de manière unidirectionnelle ou bidirectionnelle.
+:::
+
+::: {.content-visible when-profile="slides"}
+
+## Types de relations
+
+  - Prise en charge complète: gestion des relations entre entités de différents types.
+  - Types de relations
+    - One-to-One (Un-vers-Un)
+    - One-to-Many (Un-vers-Plusieurs)
+    - Many-to-Many (Plusieurs-vers-Plusieurs)
+  - Unidirectionnelle ou bidirectionnelle.
+:::
+
+## One To One (1-1)
+
+::: {.content-visible when-profile="notes"}
+Dans certaines situations, lors de la modélisation orientée objet, il est nécessaire d'associer deux classes dans une relation un-à-un, mais en gardant une seule relation.
+:::
+
+::: {.content-visible when-profile="slides"}
+ - 1-1 en Java mais une seule relation
+:::
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-uml-onetoone
+//| fig-cap: Un Customer a une Biography
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="""
+@startuml
+class Biography {
+    - brief: String
+    - extended: String
+}
+class Customer {
+    - id: long
+    - name: String
+}
+
+Customer "1" *-right- "1" Biography
+@enduml""";
+    
+
+IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);  
+return null;
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-onetoone
+//| fig-cap: L'unique relation CUSTOMER
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_biography"),script);  
+return null;
+```
+
+:::
+::::
+
+::: {.content-visible when-profile="notes"}
+Pour cela JPA propose des annotations spécifiques :
+
+[\@Embeddable](https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/embeddable): Cette annotation indique que les membres d'une classe Java peuvent être persistés en tant qu'attributs de la classe qui les utilise. En d'autres termes, elle spécifie qu'une classe peut être utilisée comme composant réutilisable dont les propriétés peuvent être incorporées dans une autre entité.
+
+[\@Embedded](https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/embedded): Utilisée au niveau d'un membre de classe annoté avec \@Embeddable, cette annotation indique que le membre annoté doit être intégré dans la relation. Cela signifie que les propriétés de la classe annotée avec \@Embeddable seront incluses dans la table de la classe qui les utilise.
+:::
+
+
+::: {.content-visible when-profile="slides"}
+- Pour cela, JPA propose :
+    - [\@Embeddable](https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/embeddable): Indique que les membres d'une classe peuvent être persistés en tant qu'attributs de la classe qui les utilise.
+    - [\@Embedded](https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/embedded): Utilisé avec `@Embeddable` pour intégrer ses propriétés dans une autre entité
+:::
+
+::: {.content-visible when-profile="slides"}
+## Un client a une et une seule biographie {.smaller}
+:::
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-class-embeddable
+//| filename: null
+//| fig-cap: Embeddable.java
+//| fig-link: /code-server/?folder=/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_biography/Biography.java
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_biography/Biography.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Biography"),script);
+return null;
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| jupyter: {source_hidden: true}
+//| vscode: {languageId: java}
+//| fig-cap: Customer.java
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_biography/Customer.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
+return null;
+```
+
+:::
+::::
+
+```{java}
+//| output: false
+//| echo: false
+//| vscode: {languageId: java}
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_biography.*;
+EntityManagerFactory emf = DatabaseManager.getEntityManagerFactory();
+```
+
+::: {.content-visible when-profile="notes"}
+On peut donc rendre persistente une instance de `Customer` associé à une instance de `Biography`.
+:::
+
+::: {.content-visible when-profile="slides"}
+## Persistence de l'association
+:::
+
+```{java}
+//| output: true
+//| echo: true
+//| code-fold: true
+//| code-summary: Creation et persistence d'un Customer
+//| tags: []
+//| vscode: {languageId: java}
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_biography.Customer;
+try (EntityManager entityManager = emf.createEntityManager()) {
+   entityManager.getTransaction().begin();
+            
+   Customer customer = Customer.of("Jim");
+   customer.setBiography(Biography.builder()
+      .brief("bla")
+      .extended("bla bla")
+      .build());
+   entityManager.persist(customer);
+            
+   entityManager.getTransaction().commit();
+}
+```
+
+dans une seule relation
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-table-onetoone
+//| fig-cap: La table CUSTOMER
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="SELECT * FROM ex_biography.CUSTOMER";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",List.of(),script);
+return null;
+```
+
+## One to Many (1-N)
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-uml-onetomany
+//| fig-cap: Une Order a plusieurs Line
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="""
+@startuml
+class Order {
+    - id: long
+    - date: LocalDateTime
+}
+class Line {
+    - id: long
+    - product: String
+    - price: double
+}er "1" *-r- "1..*" Line :"         "
+@enduml""";
+    
+
+IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);  
+return null;
+```
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_b/Line.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Line"),script);
+return null;
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_b/Order.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Order"),script);
+return null;
+```
+
+:::
+
+::::
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-onetomanyb
+//| fig-cap: Les relations LINE et EORDER
+//| tags: [remove-input]
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_one_to_many_b"),script);  
+return null;
+```
+
+::: {.content-visible when-profile="notes"}
+### Avec deux entités
+
+Dans le cas général, l'attribut de type `Collection<T>` est annoté avec `@OneToMany`.
+
+L'attribut optionnel `mappedBy` indique le nom de l'attribut correspondant dans le type `T` si l'on souhaite une relation bi-directionnelle. L'autre entité (de Type `T`) est alors annotée avace `@ManyToOne`
+:::
+
+::: {.content-visible when-profile="slides"}
+## Avec deux entités
+
+- Dans le cas général :
+    - L'attribut de type `Collection<T>` est annoté avec `@OneToMany`.
+    - Pour une relation bidirectionnelle, l'autre entité (de type `T`) est annotée avec `@ManyToOne`.
+    - L'attribut optionnel `mappedBy` indique le nom de l'attribut correspondant dans le type `T` si l'on souhaite une relation bidirectionnelle.
+
+:::
+
+::: {.content-visible when-profile="slides"}
+
+## 1 to N à deux entités (1/3)
+
+:::
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_a/Order.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Order"),script);
+return null;
+```
+
+::: {.content-visible when-profile="slides"}
+
+## 1 to N à deux entités (2/3)
+
+:::
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_a/Line.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Line"),script);
+return null;
+```
+
+::: {.content-visible when-profile="slides"}
+
+## 1 to N à deux entités (3/3)
+
+:::
+
+```{java}
+//| output: false
+//| echo: false
+//| tags: []
+//| vscode: {languageId: java}
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_associations.ex_onetomany_a.*;
+EntityManagerFactory emf = DatabaseManager.getEntityManagerFactory();
+final Logger log = LoggerFactory.getLogger("notebook");
+```
+
+```{java}
+//| code-fold: true
+//| code-summary: Creation et persistence d'une commande et de ses lignes.
+//| tags: []
+//| vscode: {languageId: java}
+
+Order order1 = new Order()
+                .addLine(Line.of("Pen", 1.0))
+                .addLine(Line.of("Paper", 5.0))
+                .addLine(Line.of("Scissor", 8.0));
+Order order2 = new Order()
+                .addLine(Line.of("Car", 20000))
+                .addLine(Line.of("Moto", 8000));
+
+try (EntityManager entityManager = emf.createEntityManager()) {
+            entityManager.getTransaction().begin();
+            entityManager.persist(order1);
+            entityManager.persist(order2);
+            entityManager.getTransaction().commit();
+        }
+
+try (EntityManager entityManager = emf.createEntityManager()) {
+            Order order=entityManager.find(Order.class, 1L);
+            log.info("{} {}",order, order.getLines());
+        }
+```
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-onetomanya
+//| fig-cap: Les relations LINE et EORDER
+//| tags: [remove-input]
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_one_to_many_a"),script);  
+return null;
+```
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-onetomanya-query
+//| fig-cap: SELECT * FROM EORDER INNER JOIN LINE
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="""
+SELECT EORDER.id AS order_id,
+                       EORDER.date AS order_date,
+                       LINE.id AS line_id,
+                       LINE.product,
+                       LINE.price
+                FROM EX_ONE_TO_MANY_A.EORDER AS EORDER
+                    INNER JOIN EX_ONE_TO_MANY_A.LINE AS LINE
+                    ON EORDER.id = LINE.order_id
+                    ORDER BY EORDER.id,LINE.id""";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
+  List.of(),script);
+return null;
+```
+
+## Many to Many (N-M)
+
+::: {.content-visible when-profile="notes"}
+L'annotation \@ManyToMany en Java Persistence API (JPA) est utilisée pour modéliser une relation many-to-many entre deux entités. La table d'association sera alors générée et utilisée implicitement.
+:::
+
+::: {.content-visible when-profile="slides"}
+- \@ManyToMany en Java Persistence API (JPA) :
+    - Utilisée pour modéliser une relation many-to-many entre deux entités.
+    - La table d'association est générée et utilisée implicitement.
+:::
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-uml-manytomany
+//| fig-cap: Un Customer a plusieurs adresses (qui peuvent être associées à d'autres)
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="""
+@startuml
+class Customer {
+    - id: long
+    - name: String
+}
+class Address {
+    - id: long
+    - adress: String
+}
+
+Customer "*" -right- "*" Address :"         "
+@enduml""";
+    
+
+IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);  
+return null;
+```
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-manytomany
+//| fig-cap: Les relation CUSTOMER, ADDRESS et la relation de d'association
+//| tags: [remove-input]
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_many_to_many"),script);  
+return null;
+```
+
+::: {.content-visible when-profile="slides"}
+## Many to Many (1/2)
+:::
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_manytomany/Customer.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
+return null;
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| jupyter: {source_hidden: true}
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_manytomany/Address.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Address"),script);
+return null;
+```
+
+:::
+
+::::
+
+```{java}
+//| vscode: {languageId: java}
+%maven net.datafaker:datafaker:2.0.2
+import net.datafaker.Faker;
+import java.util.stream.Stream;
+
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_associations.ex_manytomany.Address;
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_associations.ex_manytomany.Customer;
+```
+
+::: {.content-visible when-profile="slides"}
+
+## Many to Many (2/2)
+
+:::
+
+```{java}
+//| code-fold: true
+//| code-summary: Creation et persistence de Customers et d'Addresses.
+//| vscode: {languageId: java}
+
+Faker faker = new Faker();
+
+int nbAddresses = 2;
+int nbCustomers = 5;
+
+try (EntityManager entityManager = emf.createEntityManager()) {
+            entityManager.getTransaction().begin();
+Stream.generate(faker.address()::fullAddress)
+                    .map(Address::of)
+                    .limit(nbAddresses)
+                    .forEach(entityManager::persist);
+
+             TypedQuery<Address> query = entityManager.createQuery("""
+                    SELECT a
+                    FROM Address a
+                    ORDER BY random()""", Address.class);
+        
+            Stream.generate(faker.name()::fullName)
+                    .map(Customer::of)
+                    .limit(nbCustomers)
+                    .forEach(c -> query.setMaxResults(ThreadLocalRandom.current().nextInt(2) + 1)
+                            .getResultList()
+                            .stream()
+                            .map(a -> {
+                                c.getPlaces().add(a);
+                                return c;
+                            })
+                            .forEach(entityManager::persist));
+ entityManager.getTransaction().commit();
+        } 
+```
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-table-onetoone1
+//| fig-cap: La table CUSTOMER
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="SELECT * FROM EX_MANY_TO_MANY.CUSTOMER";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
+  List.of(),script);
+return null;
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-table-onetoone-3
+//| fig-cap: La table de jointure
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="SELECT * FROM EX_MANY_TO_MANY.CUSTOMER_ADDRESS ORDER BY places_id, occupants_id";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
+  List.of(),script);
+return null;
+```
+
+:::
+
+:::: 
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-table-onetoone-2
+//| fig-cap: La table ADDRESS
+//| vscode: {languageId: java}
+// PRINT RELATION
+String script="SELECT * FROM EX_MANY_TO_MANY.ADDRESS";
+IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
+  List.of(),script);
+return null;    
+```
+
+

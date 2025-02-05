@@ -1,0 +1,235 @@
+
+```{java}
+//| vscode: {languageId: java}
+%%shell
+docker network ls|grep notebooknet > /dev/null || docker network create notebooknet
+docker container ls|grep db > /dev/null && docker stop db
+
+echo "--> Launch DBMS"
+docker run --quiet --rm --name db -d \
+      --env POSTGRES_USER=${DB_USERNAME:-dba} \
+      --env POSTGRES_PASSWORD=${DB_PASSWORD:-secretsecret} \
+      --env POSTGRES_DB=${DB_NAME:-notebook-db} \
+      --volume dbhost-data:/var/lib/postgresql \
+      --volume shared-data:/shared-data \
+      --network=notebooknet \
+      -p 5432:5432 \
+      postgres:17
+          
+docker container exec \
+    --env PGPASSWORD=secretsecret \
+    db \
+    sh -c 'until pg_isready -U dba -d notebook-db; do echo "$(date) - waiting for database to start"; sleep 1; done'
+```
+
+```{java}
+//| output: false
+//| echo: false
+//| vscode:
+//|   languageId: java
+
+%mavenRepo central https://repo.maven.apache.org/maven2/
+%maven tech.tablesaw:tablesaw-html:0.43.1
+%maven tech.tablesaw:tablesaw-core:0.43.1
+%maven org.postgresql:postgresql:42.7.1
+
+//INIT A LOGGER
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+Logger log = LoggerFactory.getLogger("notebook");
+
+System.setProperty("db.url","jdbc:postgresql://docker/notebook-db");
+System.setProperty("db.username","dba");
+System.setProperty("db.password","secretsecret");
+
+IJava.getKernelInstance().getMagics().registerCellMagic("rdbmsSchema", (args, body) -> {
+    
+    //sets the results mimetype
+    
+    String fileFormat;
+    String schema;
+    if (args.size()>=1)  
+        schema=args.get(0);
+    else 
+        schema="PUBLIC";
+    if (args.size()<2)
+        fileFormat="SVG";
+    else 
+        fileFormat=args.get(1); 
+
+Properties props = new Properties();
+
+Map.of("jakarta.persistence.jdbc.url", "DB_URL",
+                    "jakarta.persistence.jdbc.user", "DB_USERNAME",
+                    "jakarta.persistence.jdbc.password", "DB_PASSWORD")
+            .forEach((k,v)->{
+                
+                final String property = v.toLowerCase().replace("_", ".");
+                props.setProperty(k,Optional.ofNullable(System.getenv(v))
+                                        .orElse(Optional.ofNullable(System.getProperty(property)).orElseThrow(()->new IllegalArgumentException("Missing "+v+" environment variable or property."))                         
+                                        ));
+            });
+
+    Connection connection = DriverManager.getConnection(props.getProperty("jakarta.persistence.jdbc.url"), 
+        props.getProperty("jakarta.persistence.jdbc.user"),
+        props.getProperty("jakarta.persistence.jdbc.password"));
+
+     DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+    StringWriter out = new StringWriter();
+
+    out.write("""
+            @startuml
+             
+             left to right direction
+             skinparam roundcorner 5                    
+             skinparam shadowing true
+             skinparam handwritten false
+             skinparam class {
+                 BackgroundColor #EEEEEE
+                 ArrowColor #2688d4
+                 BorderColor #2688d4
+             }
+             
+             !define primary_key(x) <b><color:#b8861b><&key></color> x</b>
+             !define foreign_key(x) <color:#aaaaaa><&key></color> x
+             !define column(x) <color:#efefef><&media-record></color> x
+             !define table(x) entity x << (T, white) >>            
+            """);
+    String[] bodylines=body.split("\n");                  
+    for(String bodyline:bodylines)
+     try (ResultSet resultSet = databaseMetaData.getTables(null, schema, bodyline, new String[]{"TABLE"})) {
+        while (resultSet.next()) {
+            String tableName = resultSet.getString("TABLE_NAME");
+            String remarks = resultSet.getString("REMARKS");
+
+            Table table = new Table(tableName);
+
+            //First process each column
+            try (ResultSet columns = databaseMetaData.getColumns(null, schema, tableName, null)) {
+                while (columns.next()) {
+                    String columnName = columns.getString("COLUMN_NAME");
+                    table.getFields().put(columnName, Field.of(columnName,
+                            columns.getString("COLUMN_SIZE"),
+                            columns.getString("TYPE_NAME"),
+                            columns.getString("IS_NULLABLE").equals("YES"),
+                            columns.getString("IS_AUTOINCREMENT").equals("YES")));
+                }
+            }
+
+            //Then finetune each PK
+            try (ResultSet primaryKeys = databaseMetaData.getPrimaryKeys(null, schema, tableName)) {
+                while (primaryKeys.next()) {
+                    String primaryKeyColumnName = primaryKeys.getString("COLUMN_NAME");
+                    String primaryKeyName = primaryKeys.getString("PK_NAME");
+                    table.getFields().get(primaryKeyColumnName).setRole(Field.Role.PK);
+                }
+            }
+
+            StringBuilder foreignKeysText = new StringBuilder();
+            //And Adds a link for each FK
+            try (ResultSet foreignKeys = databaseMetaData.getImportedKeys(null, schema, tableName)) {
+                while (foreignKeys.next()) {
+                    String pkTableName = foreignKeys.getString("PKTABLE_NAME");
+                    String fkTableName = foreignKeys.getString("FKTABLE_NAME");
+                    String pkColumnName = foreignKeys.getString("PKCOLUMN_NAME");
+                    String fkColumnName = foreignKeys.getString("FKCOLUMN_NAME");
+                    table.getFields().get(fkColumnName).setRole(Field.Role.FK);
+
+                    foreignKeysText.append(String.format("%s::%s --> %s::%s\n", fkTableName, fkColumnName, pkTableName, pkColumnName));
+
+                }
+            }              
+            out.write(table.toString());
+            out.write(foreignKeysText.toString());
+        }
+        
+    }
+    out.write("@enduml");
+              
+                                
+    SourceStringReader reader = new SourceStringReader(out.toString());
+    final ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+    DiagramDescription desc = reader.outputImage(os, new FileFormatOption(FileFormat.valueOf(fileFormat)));
+    os.close();
+    Object output;
+    if (fileFormat.equals("SVG"))
+        output = new String(os.toByteArray(), Charset.forName("UTF-8"));
+    else
+        output= ImageIO.read(new ByteArrayInputStream(os.toByteArray()));
+
+    display(output,fileFormat.equals("SVG")?"image/svg+xml":"image/png");
+    return output;
+    });
+
+
+
+
+import tech.tablesaw.io.html.HtmlWriter;
+
+IJava.getKernelInstance().getMagics().registerCellMagic("sqlAsTable", (args, body) -> { 
+
+Properties props = new Properties();
+
+            Map.of("jakarta.persistence.jdbc.url", "DB_URL",
+            "jakarta.persistence.jdbc.user", "DB_USERNAME",
+            "jakarta.persistence.jdbc.password", "DB_PASSWORD")
+    .forEach((k,v)->{
+        
+        final String property = v.toLowerCase().replace("_", ".");
+        props.setProperty(k,Optional.ofNullable(System.getenv(v))
+                                .orElse(Optional.ofNullable(System.getProperty(property)).orElseThrow(()->new IllegalArgumentException("Missing "+v+" environment variable or property."))                         
+                                ));
+    });
+
+String QUERY = body;
+String TABLE_NAME = "LINE";
+
+Connection conn = DriverManager.getConnection(props.getProperty("jakarta.persistence.jdbc.url"), 
+    props.getProperty("jakarta.persistence.jdbc.user"),
+    props.getProperty("jakarta.persistence.jdbc.password"));
+
+tech.tablesaw.api.Table table = null; 
+try (Statement stmt = conn.createStatement()) {
+String sql = QUERY;
+try (ResultSet results = stmt.executeQuery(sql)) {
+table = tech.tablesaw.api.Table.read().db(results, TABLE_NAME);
+}
+}   
+String result = table.write().toString("html");
+
+display(result,"text/html");
+return result;
+});
+
+%printWithName false
+
+// UPDATE SAMPLE SOURCE CODE
+String script="""
+export DB_URL=jdbc:postgresql://docker/notebook-db
+export DB_USERNAME=dba
+export DB_PASSWORD=secretsecret
+
+GITHUB_REPO=ebpro/sample-hellojpa
+GITHUB_URL=https://github.com/${GITHUB_REPO}
+BRANCH=develop
+SRC_DIR=/home/jovyan/work/src/github/${GITHUB_REPO}
+gitpuller ${GITHUB_URL} ${BRANCH} ${SRC_DIR}
+cd ${SRC_DIR}
+./mvnw package -T 1C
+""";
+IJava.getKernelInstance().getMagics().applyCellMagic("shell",List.of(""),script);  
+
+//LOAD SAMPLE CLASSES
+%jars "/home/jovyan/work/src/github/ebpro/sample-hellojpa/target/*-SNAPSHOT-jar-with-dependencies.jar"
+
+//IMPORT MAIN CLASSES
+import jakarta.persistence.*;
+import fr.univtln.bruno.demos.jpa.hello.DatabaseManager;
+
+//INIT THE DATABASE 
+try (EntityManager em = DatabaseManager.getEntityManagerFactory().createEntityManager();) {}
+
+```

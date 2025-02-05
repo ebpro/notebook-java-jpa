@@ -1,0 +1,406 @@
+---
+title: Les clés primaires avec JPA 
+description: contrôle fin des identifiants JPA.
+categories:
+  - Java
+  - I211
+  - Lecture
+  - JPA
+provide_notes: true
+provide_slides: true
+jupyter: java-lts
+---
+
+## Softwares 
+
+{{< include ./quarto-utils/_version.qmd >}}
+{{< include ./_init.qmd >}}
+
+## Concepts fondamentaux
+
+- Clé primaire
+  - sous-ensemble minimal K d'attributs A = {a₁, a₂, ..., aₙ} d'une relation R qui satisfait simultanément : 
+    1. l'unicité, qui garantit que pour tous tuples t₁, t₂ ∈ R, si t₁ ≠ t₂ alors leurs projections sur K sont différentes (t₁[K] ≠ t₂[K]), 
+    2. la minimalité, qui assure qu'aucun sous-ensemble propre K' ⊂ K ne peut satisfaire la propriété d'unicité,
+    3. la non-nullité, qui impose que pour tout tuple t ∈ R et tout attribut k ∈ K, la valeur t[k] ne peut pas être nulle (t[k] ≠ null),
+- Types supportés: primitifs (`int`, `long`, ...), wrappers (`Integer`, `Long`, ...), `String`, Date (`Date`, `LocalDate`, ...), `UUID`
+- Annotation `@Id` sur l'attribut de l'entité
+
+## Génération automatique des Id atomiques
+
+::: {.content-visible when-profile="slides"}
+
+- Annotation `@GeneratedValue`
+- Stratégies disponibles
+  - IDENTITY: auto-increment natif
+  - SEQUENCE: séquence BD
+  - TABLE: table de séquences
+  - AUTO: choix automatique
+:::
+
+::: {.content-visible when-profile="notes"}
+
+En théorie des bases de données relationnelles, une clé primaire est définie comme un sous-ensemble minimal K d'attributs A = {a₁, a₂, ..., aₙ} d'une relation R qui satisfait simultanément trois propriétés fondamentales : (1) l'unicité, qui garantit que pour tous tuples t₁, t₂ ∈ R, si t₁ ≠ t₂ alors leurs projections sur K sont différentes (t₁[K] ≠ t₂[K]), (2) la minimalité, qui assure qu'aucun sous-ensemble propre K' ⊂ K ne peut satisfaire la propriété d'unicité, et (3) la non-nullité, qui impose que pour tout tuple t ∈ R et tout attribut k ∈ K, la valeur t[k] ne peut pas être nulle (t[k] ≠ null), ces propriétés garantissant ainsi l'intégrité des entités et l'identification unique des tuples dans la base de données.
+
+
+La génération automatique des identifiants est une fonctionnalité essentielle de JPA, permettant de déléguer la création des valeurs d'identifiants au framework.
+
+Plusieurs stratégie de génération sont disponibles, chacune adaptée à un contexte particulier.
+
+1. **IDENTITY**
+   - Utilise l'auto-increment natif de la base
+   - Optimal pour MySQL/MariaDB
+   - Pas de batch possible
+
+2. **SEQUENCE**
+   - Utilise une séquence en base
+   - Performant avec allocationSize > 1
+   - Standard pour PostgreSQL/Oracle
+
+3. **TABLE**
+   - Utilise une table dédiée
+   - Portable mais moins performant
+   - Solution de dernier recours
+
+4. **AUTO**
+   - Choix automatique selon la base
+   - IDENTITY pour MySQL
+   - SEQUENCE pour PostgreSQL
+
+5. **UUID**
+   - Utilise un UUID
+   - Portable et unique
+
+:::
+
+### Tableau comparatif
+
+| Stratégie | Performance | Portabilité | Batch | Scalabilité | Usage recommandé |
+|-----------|-------------|-------------|-------|-------------|------------------|
+| IDENTITY  | +++         | +           | Non   | +          | MySQL/MariaDB    |
+| SEQUENCE  | ++          | ++          | Oui   | ++         | PostgreSQL/Oracle|
+| TABLE     | +           | +++         | Oui   | +++        | Multi-bases      |
+| AUTO      | ++          | ++          | Selon | ++         | Développement    |
+| UUID      | +           | +++         | Non   | ++++       | Systèmes distribués|
+
+Notes sur la scalabilité:
+
+  - IDENTITY: problématique en sharding
+  - SEQUENCE: possible avec sequences par shard
+  - TABLE: adapté au clustering
+  - UUID: optimal pour systèmes distribués
+
+### Les générateurs SEQUENCE et IDENTITY 
+
+  * Les générateurs SEQUENCE et IDENTITY spécifient l'utilisation d'une séquence de base de données ou d'une colonne d'identité (plus performant, mais pas portable). [](https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#a16164).
+
+:::: {.columns}
+::: {.column}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-class-employee-seqid-PK
+//| fig-cap: EmployeePK.java
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_ids/ex_seqid/Customer.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
+return null;    
+```
+
+:::
+::: {.column}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-employe-seqid-PK
+//| fig-cap: An Employee with a composite Key/Id
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_idseq"),script);  
+return null;
+```
+
+:::
+::::
+
+### Sequence et Batch
+
+La génération de clés avec une séquence peut être optimisée en utilisant un `allocationSize` plus grand que 1. 
+Cela permet de pré-allouer un bloc de valeurs pour les entités, réduisant ainsi le nombre d'appels à la séquence.
+
+```java
+// Exemple de configuration optimisée
+@Entity
+public class Order {
+    @Id 
+    @GeneratedValue(
+        strategy = GenerationType.SEQUENCE,
+        generator = "order_seq"
+    )
+    @SequenceGenerator(
+        name = "order_seq",
+        sequenceName = "ORDER_SEQ",
+        initialValue = 1,
+        allocationSize = 50  // Optimisation batch
+    )
+    private Long id;
+}
+```
+
+### générateur TABLE
+
+Le générateur TABLE demande d'attribuer des clés primaires à l'entité en utilisant une table de base de données, c'est le plus portable mais le moins performant.
+
+:::: {.columns}
+::: {.column}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-class-employee-tableid-PK
+//| filename: null
+//| fig-cap: EmployeePK.java
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_ids/ex_tableid/Customer.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
+return null;        
+```
+
+:::
+::: {.column}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-employe-composite-idtable
+//| fig-cap: An Employee with a composite Key/Id
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_idtable"),script);  
+return null;
+```
+
+:::
+::::
+
+### UUIDs
+
+  - Les UUIDs sont des identifiants universels uniques, générés aléatoirement.
+  - Avantages: unicité globale, distribution, sans coordination centrale
+  - Inconvénients: taille (16 octets), performance index, non séquentiel
+    - Pour la pagination ajouter un index sur un attribut date de création
+  - Usage: microservices, systèmes distribués, réplication multi-maîtres
+
+:::: {.columns}
+::: {.column}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-class-employee-uuid-PK
+//| filename: null
+//| fig-cap: EmployeePK.java
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_uuid/Customer.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
+return null;        
+```
+
+:::
+::: {.column}
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-customer-uuid
+//| fig-cap: A Customer with a UUID
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_uuid"),script);  
+return null;
+```
+
+:::
+::: {.column}
+
+```{java}
+//| output: false
+//| echo: false
+//| vscode: {languageId: java}
+import java.util.stream.Stream;
+import net.datafaker.Faker;
+
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_uuid.Customer;
+```
+
+```{java}
+//| output: false
+//| echo: false
+//| tags: []
+//| vscode: {languageId: java}
+import fr.univtln.bruno.demos.jpa.hello.samples.ex_associations.ex_onetomany_a.*;
+EntityManagerFactory emf = DatabaseManager.getEntityManagerFactory();
+final Logger log = LoggerFactory.getLogger("notebook");
+```
+
+```{java}
+//| vscode: {languageId: java}
+try (EntityManager entityManager = emf.createEntityManager()) {
+            entityManager.getTransaction().begin();
+
+            Faker faker = new Faker();
+
+            Stream.generate(() -> {
+                String fullname = faker.name().fullName();
+                return Customer.of(fullname);
+            }).limit(5).forEach(entityManager::persist);
+
+            entityManager.getTransaction().commit();
+
+            entityManager.createQuery("""
+                    SELECT c 
+                    FROM CustomerUUID c""")
+                    .setMaxResults(5)
+                    .getResultStream()
+                    .forEach(System.out::println);
+        }
+```
+
+:::
+::::
+
+## Les clés composites
+
+- Types de clés
+  - **Clé atomique**
+    - **Natural** (Clé naturelle) : attribut métier unique (email, SIRET)
+    - **Surrogate** (Clé artificielle) : identifiant technique unique (Long, UUID)
+
+  - **Clé composite**
+    - **Natural** : combinaison d'attributs métier (année + département + matricule)
+    - **Surrogate** : combinaison d'identifiants techniques (shardId + sequenceId)
+
+- JPA propose deux approches pour gérer les clés composites:
+  - @EmbeddedId : encapsule les attributs dans une classe dédiée
+  - @IdClass : distribue les attributs dans l'entité
+
+### Embedded Id
+
+ - Utilisation de l'annotation `@EmbeddedId`
+ - Encapsulation des attributs de la clé dans une classe dédiée
+ - La classe embarquée doit être annotée @Embeddable
+    - Doit implémenter Serializable
+    - Nécessite equals() et hashCode()
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-employe-composite-id
+//| fig-cap: An Employee with a composite Key/Id
+//| tags: [remove-input]
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_embedded_id"),script);  
+return null;
+```
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-class-employee-embedded
+//| filename: X.java
+//| fig-cap: Employee.java
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_ids/ex_embedded/Employee.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Employee"),script);
+return null;
+```
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-class-employee-embedded-PK
+//| filename: null
+//| fig-cap: EmployeePK.java
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_ids/ex_embedded/EmployeePK.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("EmployeePK"),script);
+return null;
+```
+
+### Id Class
+ 
+- Utilisation de l'annotation `@IdClass` dans l'entité.
+- Les attributs de la clé sont définis dans l'entité
+- Une classe séparée définit la structure de la clé
+- Les noms des attributs doivent correspondre
+- Plus simple pour les requêtes JPQL
+
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-rel-employe-composite-id-idclass
+//| fig-cap: An Employee with a composite Key/Id
+//| tags: [remove-input]
+//| vscode: {languageId: java}
+// PRINT SCHEMA
+String script="%";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
+  List.of("ex_idclass"),script);  
+return null;
+```
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-class-employee-idclass
+//| filename: null
+//| fig-cap: Employee.java
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_ids/ex_idclass/Employee.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Employee"),script);
+return null;
+```
+
+```{java}
+//| output: true
+//| echo: false
+//| label: fig-class-employee-idclass-PK
+//| filename: null
+//| fig-cap: EmployeePK.java
+//| vscode: {languageId: java}
+// PRINT CLASS
+String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_ids/ex_idclass/EmployeePK.java";
+
+IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("EmployeePK"),script);
+return null;
+```
+

@@ -10,3 +10,9 @@ local.db
 /.quarto/
 .jupyter_cache
 *_files/
+_output/
+_freeze/
+HIDDEN/
+_init.embed-preview.html
+_init.html
+*.quarto_ipynb
