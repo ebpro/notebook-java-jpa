@@ -29,7 +29,7 @@ Un exemple complet de base est disponible dans l'entrepôt: [https://github.com/
 -   Simplifie les opérations CRUD (Create, Read, Update, Delete) sur les objets persistants.
 -   Avantages : portabilité des applications, abstraction de la couche de persistance, réduction de la dépendance au code SQL spécifique au fournisseur de base de données.
 -   Exemple : utilisation de JPA avec des outils populaires tels que Hibernate, EclipseLink, ou OpenJPA pour simplifier le développement d'applications Jakarta EE.
-:::
+:::sdk 
 
 ::: {.content-visible when-profile="notes"}
 Le Mapping Relationnel/Object (ORM) est une approche déclarative visant à établir un lien entre un modèle Orienté Objet, tel qu'un programme Java, et un modèle relationnel, matérialisé par des tables dans une base de données relationnelle. Cette démarche peut comprendre la création du schéma relationnel à partir du programme Java et l'automatisation des fonctions essentielles pour la gestion de la persistance des données. Cela améliore la portabilité des applications par une abstraction de la couche de persistance et donc une réduction de la dépendance au code SQL spécifique au fournisseur de base de données.
