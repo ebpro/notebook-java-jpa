@@ -8,13 +8,12 @@ categories:
   - JPA
 provide_notes: true
 provide_slides: true
-jupyter: java-lts
+jupyter: java
 ---
 
-{{< include ./quarto-utils/_version.qmd >}}
 {{< include ./_init.qmd >}}
 
-## Cycle de vie d'une entité 
+## Cycle de vie d'une entité
 
 Le cycle de vie d'une entité JPA définit les différents états possibles d'une instance (`New`, `Managed`, `Detached`, `Removed`) et les transitions entre ces états via les opérations de l'EntityManager (`persist()`, `merge()`, `remove()`, `detach()`), permettant ainsi le suivi et la gestion de la synchronisation entre les objets Java en mémoire et leur représentation en base de données.
 
@@ -49,7 +48,7 @@ stateDiagram-v2
 
 ## Callbacks du cycle de vie
 
-Comme le cycle de vie des entités géré par JPA, des annotations spécifiques sont proposées pour exécuter des méthodes de Callback d'une entités à des moments spécifiques : 
+Comme le cycle de vie des entités géré par JPA, des annotations spécifiques sont proposées pour exécuter des méthodes de Callback d'une entités à des moments spécifiques :
 
 - Persistence
     - `@PrePersist`: avant `persist()`
@@ -119,7 +118,7 @@ Définir un ou des `Listener` : des classes dédiées à la réaction aux évèn
 // PRINT CLASS
 String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_hook/EntityMonitorListener.java";
 IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("EntityMonitorListener"),script);
-return null;       
+return null;
 ```
 
 
@@ -157,5 +156,5 @@ try (EntityManager entityManager = emf.createEntityManager()) {
                 entityManager.getTransaction().begin();
                 entityManager.remove(customer);
                 entityManager.getTransaction().commit();
-            }        
+            }
 ```

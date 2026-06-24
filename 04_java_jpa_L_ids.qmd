@@ -1,5 +1,5 @@
 ---
-title: Les clés primaires avec JPA 
+title: Les clés primaires avec JPA
 description: contrôle fin des identifiants JPA.
 categories:
   - Java
@@ -8,19 +8,16 @@ categories:
   - JPA
 provide_notes: true
 provide_slides: true
-jupyter: java-lts
+jupyter: java
 ---
 
-## Softwares 
-
-{{< include ./quarto-utils/_version.qmd >}}
 {{< include ./_init.qmd >}}
 
 ## Concepts fondamentaux
 
 - Clé primaire
-  - sous-ensemble minimal K d'attributs A = {a₁, a₂, ..., aₙ} d'une relation R qui satisfait simultanément : 
-    1. l'unicité, qui garantit que pour tous tuples t₁, t₂ ∈ R, si t₁ ≠ t₂ alors leurs projections sur K sont différentes (t₁[K] ≠ t₂[K]), 
+  - sous-ensemble minimal K d'attributs A = {a₁, a₂, ..., aₙ} d'une relation R qui satisfait simultanément :
+    1. l'unicité, qui garantit que pour tous tuples t₁, t₂ ∈ R, si t₁ ≠ t₂ alors leurs projections sur K sont différentes (t₁[K] ≠ t₂[K]),
     2. la minimalité, qui assure qu'aucun sous-ensemble propre K' ⊂ K ne peut satisfaire la propriété d'unicité,
     3. la non-nullité, qui impose que pour tout tuple t ∈ R et tout attribut k ∈ K, la valeur t[k] ne peut pas être nulle (t[k] ≠ null),
 - Types supportés: primitifs (`int`, `long`, ...), wrappers (`Integer`, `Long`, ...), `String`, Date (`Date`, `LocalDate`, ...), `UUID`
@@ -90,7 +87,7 @@ Notes sur la scalabilité:
   - TABLE: adapté au clustering
   - UUID: optimal pour systèmes distribués
 
-### Les générateurs SEQUENCE et IDENTITY 
+### Les générateurs SEQUENCE et IDENTITY
 
   * Les générateurs SEQUENCE et IDENTITY spécifient l'utilisation d'une séquence de base de données ou d'une colonne d'identité (plus performant, mais pas portable). [](https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#a16164).
 
@@ -107,7 +104,7 @@ Notes sur la scalabilité:
 String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_ids/ex_seqid/Customer.java";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
-return null;    
+return null;
 ```
 
 :::
@@ -123,7 +120,7 @@ return null;
 String script="%";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_idseq"),script);  
+  List.of("ex_idseq"),script);
 return null;
 ```
 
@@ -132,14 +129,14 @@ return null;
 
 ### Sequence et Batch
 
-La génération de clés avec une séquence peut être optimisée en utilisant un `allocationSize` plus grand que 1. 
+La génération de clés avec une séquence peut être optimisée en utilisant un `allocationSize` plus grand que 1.
 Cela permet de pré-allouer un bloc de valeurs pour les entités, réduisant ainsi le nombre d'appels à la séquence.
 
 ```java
 // Exemple de configuration optimisée
 @Entity
 public class Order {
-    @Id 
+    @Id
     @GeneratedValue(
         strategy = GenerationType.SEQUENCE,
         generator = "order_seq"
@@ -172,7 +169,7 @@ Le générateur TABLE demande d'attribuer des clés primaires à l'entité en ut
 String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_ids/ex_tableid/Customer.java";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
-return null;        
+return null;
 ```
 
 :::
@@ -188,7 +185,7 @@ return null;
 String script="%";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_idtable"),script);  
+  List.of("ex_idtable"),script);
 return null;
 ```
 
@@ -217,7 +214,7 @@ return null;
 String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_uuid/Customer.java";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
-return null;        
+return null;
 ```
 
 :::
@@ -233,7 +230,7 @@ return null;
 String script="%";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_uuid"),script);  
+  List.of("ex_uuid"),script);
 return null;
 ```
 
@@ -275,7 +272,7 @@ try (EntityManager entityManager = emf.createEntityManager()) {
             entityManager.getTransaction().commit();
 
             entityManager.createQuery("""
-                    SELECT c 
+                    SELECT c
                     FROM CustomerUUID c""")
                     .setMaxResults(5)
                     .getResultStream()
@@ -298,14 +295,14 @@ try (EntityManager entityManager = emf.createEntityManager()) {
     - **Surrogate** : combinaison d'identifiants techniques (shardId + sequenceId)
 
 - JPA propose deux approches pour gérer les clés composites:
-  - @EmbeddedId : encapsule les attributs dans une classe dédiée
-  - @IdClass : distribue les attributs dans l'entité
+  - `@EmbeddedId` : encapsule les attributs dans une classe dédiée
+  - `@IdClass` : distribue les attributs dans l'entité
 
 ### Embedded Id
 
  - Utilisation de l'annotation `@EmbeddedId`
  - Encapsulation des attributs de la clé dans une classe dédiée
- - La classe embarquée doit être annotée @Embeddable
+ - La classe embarquée doit être annotée `@Embeddable`
     - Doit implémenter Serializable
     - Nécessite equals() et hashCode()
 
@@ -320,7 +317,7 @@ try (EntityManager entityManager = emf.createEntityManager()) {
 String script="%";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_embedded_id"),script);  
+  List.of("ex_embedded_id"),script);
 return null;
 ```
 
@@ -353,7 +350,7 @@ return null;
 ```
 
 ### Id Class
- 
+
 - Utilisation de l'annotation `@IdClass` dans l'entité.
 - Les attributs de la clé sont définis dans l'entité
 - Une classe séparée définit la structure de la clé
@@ -372,7 +369,7 @@ return null;
 String script="%";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_idclass"),script);  
+  List.of("ex_idclass"),script);
 return null;
 ```
 

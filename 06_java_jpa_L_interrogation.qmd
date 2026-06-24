@@ -8,15 +8,9 @@ categories:
   - JPA
 provide_notes: true
 provide_slides: true
-jupyter:
-  kernelspec:
-    display_name: 'java-lts [env:base] *'
-    language: java
-    name: conda-base-java-lts
-    path: /opt/conda/share/jupyter/kernels/java-lts
+jupyter: java
 ---
 
-{{< include ./quarto-utils/_version.qmd >}}
 {{< include ./_init.qmd >}}
 
 ## Types d'interrogation JPA
@@ -25,7 +19,7 @@ jupyter:
   - SQL natif (`createNativeQuery`)
   - JPQL (`createQuery`)
     - Langage de requête orienté objet inspiré de SQL pour les entités
-  - Criteria API (`criteriaBuidler`) 
+  - Criteria API (`criteriaBuidler`)
     - Constructeur dynamique et typesafe de requêtes
   - Named Queries (`@NamedQuery`, `@NamedNativeQuery`, ...)
     - Requêtes nommées dans les entités.
@@ -63,7 +57,7 @@ CustomerGenerator.generateCustomer(1000);
 //| vscode: {languageId: java}
 try (EntityManager entityManager = emf.createEntityManager()) {
     Query query = entityManager.createNativeQuery(
-        "SELECT * FROM CUSTOMER WHERE lastname LIKE ?", 
+        "SELECT * FROM CUSTOMER WHERE lastname LIKE ?",
         Customer.class);
     List<Customer> customers = query
         .setParameter(1, "C%")
@@ -120,11 +114,11 @@ results.forEach(r -> System.out.println("%s, %s".formatted(r[0], r[1])));
 try (EntityManager entityManager = emf.createEntityManager()) {
     Query query = entityManager.createNativeQuery(
         """
-        SELECT * 
+        SELECT *
         FROM CUSTOMER
         ORDER BY id""",
         Customer.class);
-        
+
     //Customers (page 10 of size 5)
     int pageNumber = 10;
     int pageSize = 5;
@@ -132,10 +126,10 @@ try (EntityManager entityManager = emf.createEntityManager()) {
         .setFirstResult((pageNumber-1)*pageSize)
         .setMaxResults(pageSize)
         .getResultList();
-    
+
     //System.out.println(customers);
     customers.stream().map(Customer::toString).forEach(System.out::println);
-}    
+}
 ```
 
 ### SQL Natif (Aggregation)
@@ -163,8 +157,8 @@ String name = "Smith";
 try (EntityManager entityManager = emf.createEntityManager()) {
     name = (String)entityManager.createNativeQuery(
         """
-        SELECT LASTNAME FROM CUSTOMER  
-        ORDER BY RANDOM()  
+        SELECT LASTNAME FROM CUSTOMER
+        ORDER BY RANDOM()
         LIMIT 1""").getSingleResult();
     }
 log.info("Nom d'une personne aléatoire: {}",name);
@@ -178,22 +172,22 @@ Les requêtes peuvent être paramétrées (? et setParameter(...)).
 //| echo: true
 //| output: true
 //| vscode: {languageId: java}
-//Variable name (String) contains an existing name 
+//Variable name (String) contains an existing name
 try (EntityManager entityManager = emf.createEntityManager()) {
     Query query = entityManager.createNativeQuery(
         """
-        SELECT * 
+        SELECT *
         FROM CUSTOMER
-        WHERE LASTNAME = :lastname""", 
+        WHERE LASTNAME = :lastname""",
         Customer.class);
-    
+
     List<Customer> customers = query
         .setParameter("lastname", name)
         .setMaxResults(3)
         .getResultList();
     log.info("3 firsts customers whose name is %s".formatted(name));
     customers.stream().forEach(System.out::println);
-}    
+}
 ```
 
 ---
@@ -204,22 +198,22 @@ possibilité de nommer les paramètres:
 //| echo: true
 //| output: true
 //| vscode: {languageId: java}
-//Variable name (String) contains an existing name 
+//Variable name (String) contains an existing name
 try (EntityManager entityManager = emf.createEntityManager()) {
     Query query = entityManager.createNativeQuery(
         """
-        SELECT * 
+        SELECT *
         FROM CUSTOMER
-        WHERE LASTNAME = ?""", 
+        WHERE LASTNAME = ?""",
         Customer.class);
-    
+
     List<Customer> customers = query
         .setParameter(1, name)
         .setMaxResults(3)
         .getResultList();
     log.info("3 firsts customers whose name is %s".formatted(name));
     customers.stream().forEach(System.out::println);
-}    
+}
 ```
 
 ## Java Persistence Query Language (JPQL)
@@ -249,7 +243,7 @@ EntityManager entityManager = emf.createEntityManager();
 //| vscode: {languageId: java}
 // Liste d'entités
 TypedQuery<Customer> query = entityManager.createQuery(
-    "SELECT c FROM Customer c WHERE c.id > :minId", 
+    "SELECT c FROM Customer c WHERE c.id > :minId",
     Customer.class);
 List<Customer> customers = query
     .setParameter("minId", 10)
@@ -262,7 +256,7 @@ List<Customer> customers = query
 //| vscode: {languageId: java}
 // Résultat unique
 Customer customer = entityManager.createQuery(
-    "SELECT c FROM Customer c WHERE c.lastname = :lastname", 
+    "SELECT c FROM Customer c WHERE c.lastname = :lastname",
     Customer.class)
     .setParameter("lastname", name)
     .setMaxResults(1)
@@ -283,7 +277,7 @@ entityManager.close();
   - SELECT, FROM, WHERE
   - GROUP BY, HAVING
   - ORDER BY
-  
+
 - Expressions de chemin:
   - Navigation: `customer.address.city`
   - Collections: `customer.orders`
@@ -330,7 +324,7 @@ EntityManager entityManager = emf.createEntityManager()
 //| echo: true
 //| output: true
 //| vscode: {languageId: java}
-//Variable name (String) contains an existing name 
+//Variable name (String) contains an existing name
 TypedQuery<Customer> query = entityManager
         .createQuery("""
                      SELECT c
@@ -386,7 +380,7 @@ import fr.univtln.bruno.demos.jpa.hello.samples.ex_dto.CustomerDisplayDTO;
 String script="""
 cat /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_dto/CustomerDisplayDTO.java
 """;
-IJava.getKernelInstance().getMagics().applyCellMagic("shell",List.of(""),script);  
+IJava.getKernelInstance().getMagics().applyCellMagic("shell",List.of(""),script);
 return null;
 ```
 
@@ -394,7 +388,7 @@ return null;
 //| echo: true
 //| output: true
 //| vscode: {languageId: java}
-//Variable name (String) contains an existing name 
+//Variable name (String) contains an existing name
 TypedQuery<CustomerDisplayDTO> query = entityManager.createQuery("""
                      SELECT new fr.univtln.bruno.demos.jpa.hello.samples.ex_dto.CustomerDisplayDTO
                          (c.firstname, c.lastname)
@@ -417,13 +411,13 @@ query
 
 ```java
 // Groupement avec having
-"SELECT c.country, COUNT(c), AVG(c.age) 
- FROM Customer c 
- GROUP BY c.country 
+"SELECT c.country, COUNT(c), AVG(c.age)
+ FROM Customer c
+ GROUP BY c.country
  HAVING COUNT(c) > :minCustomers"
 
 // Sous-requêtes
-"SELECT c FROM Customer c WHERE 
+"SELECT c FROM Customer c WHERE
  (SELECT COUNT(o) FROM c.orders o) > :orderCount"
 ```
 
@@ -437,8 +431,8 @@ query
 long customerCount=(long)entityManager.createQuery("""
                                 SELECT COUNT(c)
                                 FROM Customer c""").getSingleResult();
-                                                   
-System.out.println("There is %s customers.".formatted(customerCount));                                                   
+
+System.out.println("There is %s customers.".formatted(customerCount));
 ```
 
 ```{java}
@@ -565,7 +559,7 @@ public class Customer {
 // Le graph est récupéré par son nom et appliqué viai un hint
 EntityGraph<?> graph = em.getEntityGraph("Customer.withOrders");
 List<Customer> customers = em.createQuery(
-    "SELECT c FROM Customer c", 
+    "SELECT c FROM Customer c",
     Customer.class)
     .setHint("jakarta.persistence.fetchgraph", graph) // Active le graph
     .getResultList();
@@ -575,7 +569,7 @@ List<Customer> customers = em.createQuery(
 
 - Alternative flexible, créé programmatiquement
 
-```java 
+```java
 EntityGraph<Customer> graph = em.createEntityGraph(Customer.class);
 graph.addAttributeNodes("orders");                    // Premier niveau
 graph.addSubgraph("orders").addAttributeNodes("items"); // Second niveau
@@ -658,20 +652,20 @@ public interface GenericRepository<T, ID> {
 public abstract class JpaRepository<T, ID> implements GenericRepository<T, ID> {
     //A fournir dans le constructeur ou autre (cf. CDI ou Spring)
     protected EntityManager em;
-    
+
     //A fournir ou à déduire
     private final Class<T> entityClass;
-    
+
     protected JpaRepository(Class<T> entityClass, EntityManager entityManager) {
         this.em = entityManager;
         this.entityClass = entityClass;
     }
-    
+
     @Override
     public Optional<T> findById(ID id) {
         return Optional.ofNullable(em.find(entityClass, id));
     }
-    
+
     @Override
     public List<T> findAll(int pageNumber, int pageSize) {
         //Utiliser des named queries ou la criteria API
@@ -693,7 +687,7 @@ public abstract class JpaRepository<T, ID> implements GenericRepository<T, ID> {
         em.getTransaction().commit();
         return entity;
     }
-    
+
     @Override
     public void delete(T entity) {
         em.getTransaction().begin();
@@ -713,10 +707,10 @@ public class CustomerRepository extends JpaRepository<Customer, Long> {
     public CustomerRepository(EntityManager entityManager) {
         super(Customer.class, entityManager);
     }
-    
+
     public List<Customer> findByStatus(int pageNumber, int pageSize, Customer.Status status) {
         return em.createQuery(
-            "SELECT c FROM Customer c WHERE c.status = :status ORDER BY c.id", 
+            "SELECT c FROM Customer c WHERE c.status = :status ORDER BY c.id",
             Customer.class)
            .setParameter("status", status)
            .setFirstResult(pageNumber*pageSize)

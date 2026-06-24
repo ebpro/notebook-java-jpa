@@ -1,17 +1,33 @@
 ---
-title: L'héritage avec Jakarta Persistence 
-description: Contrôle de l'héritage avec Jakarta Persistence
+title: L'héritage avec Jakarta Persistence
+subtitle: Contrôle de l'héritage avec JPA
+description: Découvrez comment gérer l'héritage entre entités en utilisant Jakarta Persistence API (JPA) avec des exemples pratiques en Java.
+image: _quarto-utils/MyMedia/images/optimized/taiki-ishikawa-PUXFKuVf_84-unsplash_java-400.webp
+
+tools:
+  - docker
+  - java
+  - maven
+
+programs:
+  - M1-InfoMath [DEV-ADV]
+  - CNAM-I [PO43]
+
 categories:
-  - Java
-  - I211
   - Lecture
+  - Containers
+  - Java
   - JPA
+  - Persistence
+  - ORM
+
 provide_notes: true
 provide_slides: true
-jupyter: java-lts
+jupyter: java
+execute:
+  error: true
 ---
 
-{{< include ./quarto-utils/_version.qmd >}}
 {{< include ./_init.qmd >}}
 
 ::: {.content-visible when-profile="notes"}
@@ -48,7 +64,7 @@ enum Status {
     ALUMNI
   }
 
-class Student extends Person {    
+class Student extends Person {
 }
 
 Student *- Status
@@ -58,9 +74,9 @@ class Teacher extends Person {
     - double salary
 }
 @enduml""";
-    
 
-IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);  
+
+IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);
 return null;
 ```
 
@@ -86,7 +102,7 @@ Par défault JPA défini une seule relation pour une hiérarchie d'héritage. To
 // PRINT SCHEMA
 String script="%";
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_heritage1"),script);  
+  List.of("ex_heritage1"),script);
 return null;
 ```
 
@@ -120,23 +136,23 @@ try (EntityManager entityManager = emf.createEntityManager()) {
         Teacher.builder().name("T1").salary(3000).build());
     personList.forEach(entityManager::persist);
     entityManager.getTransaction().commit();
-    
+
     TypedQuery<Person> query = entityManager.createQuery("""
-                           SELECT p 
+                           SELECT p
                            FROM Person p""",
                            Person.class);
     System.out.println("Persons : %s".formatted(query.getResultList()
         .stream().map(Person::toString)
         .collect(Collectors.joining(","))));
-    
+
     TypedQuery<Teacher> query2 = entityManager.createQuery("""
-                           SELECT p 
+                           SELECT p
                            FROM Teacher p""",
                            Teacher.class);
     /*System.out.println("Teachers : %s".formatted(query2.getResultList()
         .stream().map(Teacher::toString)
         .collect(Collectors.joining(","))));*/
-} 
+}
 ```
 
 ```{java}
@@ -164,7 +180,7 @@ return null;
 
 String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage1/Person.java";
 IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Person"),script);
-return null;   
+return null;
 ```
 
 :::
@@ -179,7 +195,7 @@ return null;
 // PRINT CLASS
 String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage1/Student.java";
 IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Student"),script);
-return null;   
+return null;
 ```
 
 :::
@@ -194,7 +210,7 @@ return null;
 // PRINT CLASS
 String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage1/Teacher.java";
 IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Teacher"),script);
-return null;   
+return null;
 ```
 
 :::
@@ -232,7 +248,7 @@ Avec `@Inheritance(strategy = InheritanceType.JOINED)` chaque classe de la hiér
 // PRINT SCHEMA
 String script="%";
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_heritage2"),script);  
+  List.of("ex_heritage2"),script);
 return null;
 ```
 
@@ -258,23 +274,23 @@ try (EntityManager entityManager = emf.createEntityManager()) {
     personList.forEach(entityManager::persist);
     entityManager.getTransaction().commit();
 
-    
+
     TypedQuery<Person> query = entityManager.createQuery("""
-                           SELECT p 
+                           SELECT p
                            FROM fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage2.Person p""",
                            Person.class);
     log.info("Persons : %s".formatted(query.getResultList()
         .stream().map(Person::toString)
         .collect(Collectors.joining(","))));
-    
+
     TypedQuery<Teacher> query2 = entityManager.createQuery("""
-                           SELECT p 
+                           SELECT p
                            FROM fr.univtln.bruno.demos.jpa.hello.samples.ex_heritage2.Teacher p""",
                            Teacher.class);
     log.info("Teachers : %s".formatted(query2.getResultList()
         .stream().map(Teacher::toString)
         .collect(Collectors.joining(","))));
-} 
+}
 ```
 
 :::: {.columns}
@@ -338,7 +354,7 @@ return null;
 // PRINT CLASS
 String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_heritage2/Person.java";
 IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Person"),script);
-return null; 
+return null;
 ```
 
 :::

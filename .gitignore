@@ -16,3 +16,5 @@ HIDDEN/
 _init.embed-preview.html
 _init.html
 *.quarto_ipynb
+
+**/*.quarto_ipynb

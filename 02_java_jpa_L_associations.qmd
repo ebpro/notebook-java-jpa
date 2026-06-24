@@ -1,17 +1,37 @@
 ---
-title: Les associations entre entités avec JPA 
-description: Contrôles des relations entre entités avec JPA.
+title: Les associations entre entités avec JPA
+subtitle: Contrôles des relations entre entités avec JPA.
+description: Apprenez à gérer les associations entre entités en utilisant Jakarta Persistence API (JPA) avec des exemples pratiques en Java.
+image: _quarto-utils/MyMedia/images/optimized/taiki-ishikawa-PUXFKuVf_84-unsplash_java-400.webp
+
+jupyter: java
+
+tools:
+  - docker
+  - java
+  - maven
+
+programs:
+  - M1-InfoMath [DEV-ADV]
+  - CNAM-I [PO43]
+
 categories:
-  - Java
-  - I211
   - Lecture
+  - Containers
+  - Java
   - JPA
+  - Persistence
+  - ORM
+
 provide_notes: true
 provide_slides: true
-jupyter: java-lts
+
+execute:
+  echo: false
+  output: true
 ---
 
-{{< include ./quarto-utils/_version.qmd >}}
+
 {{< include ./_init.qmd >}}
 
 ::: {.content-visible when-profile="notes"}
@@ -64,9 +84,9 @@ class Customer {
 
 Customer "1" *-right- "1" Biography
 @enduml""";
-    
 
-IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);  
+
+IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);
 return null;
 ```
 
@@ -84,7 +104,7 @@ return null;
 String script="%";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_biography"),script);  
+  List.of("ex_biography"),script);
 return null;
 ```
 
@@ -175,14 +195,14 @@ On peut donc rendre persistente une instance de `Customer` associé à une insta
 import fr.univtln.bruno.demos.jpa.hello.samples.ex_biography.Customer;
 try (EntityManager entityManager = emf.createEntityManager()) {
    entityManager.getTransaction().begin();
-            
+
    Customer customer = Customer.of("Jim");
    customer.setBiography(Biography.builder()
       .brief("bla")
       .extended("bla bla")
       .build());
    entityManager.persist(customer);
-            
+
    entityManager.getTransaction().commit();
 }
 ```
@@ -222,9 +242,9 @@ class Line {
     - price: double
 }er "1" *-r- "1..*" Line :"         "
 @enduml""";
-    
 
-IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);  
+
+IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);
 return null;
 ```
 
@@ -272,7 +292,7 @@ return null;
 // PRINT SCHEMA
 String script="%";
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_one_to_many_b"),script);  
+  List.of("ex_one_to_many_b"),script);
 return null;
 ```
 
@@ -382,7 +402,7 @@ try (EntityManager entityManager = emf.createEntityManager()) {
 String script="%";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_one_to_many_a"),script);  
+  List.of("ex_one_to_many_a"),script);
 return null;
 ```
 
@@ -440,9 +460,9 @@ class Address {
 
 Customer "*" -right- "*" Address :"         "
 @enduml""";
-    
 
-IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);  
+
+IJava.getKernelInstance().getMagics().applyCellMagic("plantUML",List.of(),script);
 return null;
 ```
 
@@ -457,7 +477,7 @@ return null;
 String script="%";
 
 IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_many_to_many"),script);  
+  List.of("ex_many_to_many"),script);
 return null;
 ```
 
@@ -537,7 +557,7 @@ Stream.generate(faker.address()::fullAddress)
                     SELECT a
                     FROM Address a
                     ORDER BY random()""", Address.class);
-        
+
             Stream.generate(faker.name()::fullName)
                     .map(Customer::of)
                     .limit(nbCustomers)
@@ -550,7 +570,7 @@ Stream.generate(faker.address()::fullAddress)
                             })
                             .forEach(entityManager::persist));
  entityManager.getTransaction().commit();
-        } 
+        }
 ```
 
 :::: {.columns}
@@ -589,7 +609,7 @@ return null;
 
 :::
 
-:::: 
+::::
 
 ```{java}
 //| output: true
@@ -601,7 +621,7 @@ return null;
 String script="SELECT * FROM EX_MANY_TO_MANY.ADDRESS";
 IJava.getKernelInstance().getMagics().applyCellMagic("sqlAsTable",
   List.of(),script);
-return null;    
+return null;
 ```
 
 

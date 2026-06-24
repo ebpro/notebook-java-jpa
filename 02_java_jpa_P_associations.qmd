@@ -1,16 +1,21 @@
 ---
 title: 'TP JPA 02 : Associations avec Jakarta Persistence'
-description: Création d'associations entre entités JPA 
-categories:  
+subtitle: Gestion des relations entre entités JPA
+description: Apprenez à gérer les associations entre entités en utilisant Jakarta Persistence API (JPA) avec des exemples pratiques en Java.
+image: _quarto-utils/MyMedia/images/optimized/taiki-ishikawa-PUXFKuVf_84-unsplash_java-400.webp
+
+categories:
   - Exercices
   - Java
   - JPA
   - I211
-code-annotations: below
+
 provide_notes: true
 provide_slides: false
-jupyter: java-lts
+jupyter: java
 ---
+
+{{< include ./_init.qmd >}}
 
 ## Créer un nouveau projet Java JPA
 
@@ -39,7 +44,7 @@ public class Artist {
     @Id @GeneratedValue
     private Long id;
     private String name;
-    
+
     @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL)
     private Set<Album> albums = new HashSet<>();
 }
@@ -52,7 +57,7 @@ public class Album {
     private Long id;
     private String title;
     private LocalDate releaseDate;
-    
+
     @ManyToOne
     private Artist artist;
 }

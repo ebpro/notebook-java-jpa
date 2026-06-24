@@ -1,19 +1,40 @@
 ---
 title: Introduction à Jakarta Persistence API (JPA)
 description: Mapping relationnel/Objet en java avec Jakarta Persistence
+image: _quarto-utils/MyMedia/images/optimized/taiki-ishikawa-PUXFKuVf_84-unsplash_java-400.webp
+jupyter: java
+tools:
+  - docker
+  - java
+  - maven
+
+programs:
+  - M1-InfoMath [DEV-ADV]
+  - CNAM-I [PO43]
+
 categories:
   - Lecture
+  - Containers
   - Java
   - JPA
-  - I211
-code-annotations: below
+  - Persistence
+  - ORM
+
 provide_notes: true
 provide_slides: true
-jupyter: java-lts
+
+execute:
+  echo: false
+  output: true
 ---
 
-{{< include ./quarto-utils/_version.qmd >}}
 {{< include ./_init.qmd >}}
+
+## Magics
+
+```{java}
+%list
+```
 
 ## Exemples
 
@@ -29,7 +50,7 @@ Un exemple complet de base est disponible dans l'entrepôt: [https://github.com/
 -   Simplifie les opérations CRUD (Create, Read, Update, Delete) sur les objets persistants.
 -   Avantages : portabilité des applications, abstraction de la couche de persistance, réduction de la dépendance au code SQL spécifique au fournisseur de base de données.
 -   Exemple : utilisation de JPA avec des outils populaires tels que Hibernate, EclipseLink, ou OpenJPA pour simplifier le développement d'applications Jakarta EE.
-:::sdk 
+:::
 
 ::: {.content-visible when-profile="notes"}
 Le Mapping Relationnel/Object (ORM) est une approche déclarative visant à établir un lien entre un modèle Orienté Objet, tel qu'un programme Java, et un modèle relationnel, matérialisé par des tables dans une base de données relationnelle. Cette démarche peut comprendre la création du schéma relationnel à partir du programme Java et l'automatisation des fonctions essentielles pour la gestion de la persistance des données. Cela améliore la portabilité des applications par une abstraction de la couche de persistance et donc une réduction de la dépendance au code SQL spécifique au fournisseur de base de données.
@@ -93,9 +114,19 @@ Pour utiliser JPA, il faut une base de données relationnelle. Nous utiliserons 
 //| vscode: {languageId: java}
 
 // INIT DATABASE PROPERTIES
-System.setProperty("jakarta.persistence.jdbc.url","jdbc:postgresql://db/notebook-db");
-System.setProperty("jakarta.persistence.jdbc.user","dba");
-System.setProperty("jakarta.persistence.jdbc.password","secretsecret");
+//System.setProperty("jakarta.persistence.jdbc.url","jdbc:postgresql://db/notebook-db");
+//System.setProperty("jakarta.persistence.jdbc.user","dba");
+//ystem.setProperty("jakarta.persistence.jdbc.password","secretsecret");
+
+System.setProperty("db.username","dba");
+System.setProperty("db.password","secretsecret");
+System.setProperty("db.name","notebook-db");
+System.setProperty("db.url","jdbc:postgresql://dind/notebook-db");
+
+System.setProperty("jdbc.url", "jdbc:postgresql://dind/notebook-db");
+System.setProperty("jdbc.user", "dba");
+System.setProperty("jdbc.password", "secretsecret");
+
 ```
 
 Les exemples sont disponibles sur ce [repository](https://github.com/ebpro/sample-hellojpa) GitHub.
@@ -121,91 +152,35 @@ Avec JPA une classe dont les instances doivent être persistantes est appelée u
 ## Premier exemple d'entité
 :::
 
+::: columns
+::: {.column width="50%"}
+
 La classe suivante est donc entité JPA :
 
-::: columns
-::: {.column width="80%"}
-
 ```{java}
-//| vscode: {languageId: java}
-import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
-IJava.getKernelInstance().getMagics().registerCellMagic("javasrcClassByName", (args, body) -> {
-    String filename=body;
-    String className=args.get(0);
-    CompilationUnit cu = StaticJavaParser.parse(Files.readString(Path.of(filename)));
-    CompilationUnit lpp = LexicalPreservingPrinter.setup(cu);
-
-    String out = LexicalPreservingPrinter.print(lpp.getClassByName(className).get());
-                
-    out = "```Java\n"+out+"\n```";
-    display(out,"text/markdown");
-    return out;
-});
+%%javasrcClassByName fr.univtln.bruno.demos.jpa.hello.samples.ex_simple.Customer
+/home/jovyan/work/examples/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_simple/Customer.java
 ```
-
-```{java}
-//| output: true
-//| echo: false
-//| tags: []
-//| vscode: {languageId: java}
-// PRINT CLASS
-String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_simple/Customer.java";
-
-IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
-return null;
-```
-
 :::
 
-::: {.column width="20%"}
+::: {.column width="50%"}
+
 associée à la relation :
 
 ```{java}
-//| output: true
-//| echo: false
-//| tags: []
-//| vscode: {languageId: java}
-// PRINT SCHEMA
-String script="customer";
-
-IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("ex_simple"),script);  
-return null;
+%%rdbmsSchema ex_simple
+customer;
 ```
 
-:::
-:::
-
-::: {.content-visible when-profile="slides"}
-### La table correspondante
-:::
+et à la table :
 
 ```{java}
-//| output: false
-//| echo: false
-//| vscode: {languageId: java}
-// PRINT TABLES
-String script="""
-docker pull postgres:16
-""";
-IJava.getKernelInstance().getMagics().applyCellMagic("shell",List.of(),script);
-return null;
+%%tableSchema --ddl --sample=3
+ex_simple.customer
 ```
 
-```{java}
-//| output: true
-//| echo: false
-//| vscode: {languageId: java}
-// PRINT TABLES
-String script="""
-docker run --rm --quiet --network host\
-    postgres:16 \
-        psql postgresql://dba:secretsecret@db/notebook-db -c '\\d EX_SIMPLE.CUSTOMER'
-""";
-
-IJava.getKernelInstance().getMagics().applyCellMagic("shell",List.of(),script);
-return null;
-```
+:::
+:::
 
 ::: {.content-visible when-profile="slides"}
 ## Exemple étendu d'entité
@@ -217,15 +192,8 @@ Le mapping peut être contrôllé finement par un ensemble d'annotations. La cla
 ::: {.column width="80%"}
 
 ```{java}
-//| output: true
-//| echo: false
-//| tags: []
-//| vscode: {languageId: java}
-// PRINT CLASS
-String script="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_entity/Customer.java";
-
-IJava.getKernelInstance().getMagics().applyCellMagic("javasrcClassByName",List.of("Customer"),script);
-return null;
+%%javasrcClassByName fr.univtln.bruno.demos.jpa.hello.samples.ex_entity.Customer
+/home/jovyan/work/examples/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_entity/Customer.java
 ```
 
 :::
@@ -233,16 +201,8 @@ return null;
 ::: {.column width="20%"}
 
 ```{java}
-//| output: true
-//| echo: false
-//| tags: []
-//| vscode: {languageId: java}
-// PRINT SCHEMA
-String script="customer";
-
-IJava.getKernelInstance().getMagics().applyCellMagic("rdbmsSchema",
-  List.of("public"),script);
-return null;
+%%rdbmsSchema public
+customer;
 ```
 
 :::
@@ -253,19 +213,7 @@ return null;
 :::
 
 ```{java}
-//| output: true
-//| echo: false
-//| vscode: {languageId: java}
-// PRINT TABLES
-String script="""
-docker run --rm --quiet --network host \
-    postgres:16 \
-        psql postgresql://dba:secretsecret@db/notebook-db \
-            -c '\\d CUSTOMER'
-""";
-
-IJava.getKernelInstance().getMagics().applyCellMagic("shell",List.of(),script);
-return null;    
+%tableSchema customer --ddl --sample=3
 ```
 
 ::: {.content-visible when-profile="slides"}
@@ -327,7 +275,7 @@ Pour gérer les entité JPA s'appuie sur l'[entity manager](https://jakarta.ee/s
 Un exemple de base est donné ci-dessous :
 :::
 
-``` {.xml include="/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/resources/META-INF/persistence.xml"}
+``` {.xml include="/home/jovyan/work/examples/github/ebpro/sample-hellojpa/src/main/resources/META-INF/persistence.xml"}
 ```
 
 ::: {.content-visible when-profile="slides"}
@@ -351,12 +299,13 @@ A partir de l'entity manager, il est alors possible de commencer une transaction
 :::
 
 ``` java
-try (EntityManagerFactory emf = Persistence.createEntityManagerFactory("hellojpa-pu")) 
+try (EntityManagerFactory emf = Persistence.createEntityManagerFactory("hellojpa-pu"))
 {
     try (EntityManager entityManager = emf.createEntityManager()) {
     }
-}    
+}
 ```
+
 
 ::: {.content-visible when-profile="slides"}
 ## Usage avec un Singleton EMF
@@ -418,9 +367,9 @@ Customer customer = Customer.of("marie.dupond@la.fr");
 try (EntityManager entityManager = emf.createEntityManager();) {
     entityManager.getTransaction().begin();
     entityManager.persist(customer);
-    
+
     customer.setName("Marie Dupond");  // <1>
-        
+
     entityManager.getTransaction().commit();
     log.info("AFTER COMMIT: "+customer.toString());
 }
@@ -445,8 +394,8 @@ L'entity manager propose une méthode de recherche par ID [`find​(Class<T> ent
 
 try (EntityManager entityManager = emf.createEntityManager();) {
     Optional<Customer> customer = Optional.ofNullable(entityManager.find(Customer.class, newId));
-    
-    if (customer.isEmpty()) 
+
+    if (customer.isEmpty())
         log.info("Id %d not in database.".formatted(newId));
     else {
         log.info("Search cust. Id %d: %s".formatted(newId,customer));
@@ -470,8 +419,8 @@ L'entity manager propose une méthode `remove` pour supprimer une entité de la 
 //| vscode: {languageId: java}
 try (EntityManager entityManager = emf.createEntityManager();) {
     Optional<Customer> customer = Optional.ofNullable(entityManager.find(Customer.class, newId));
-    
-    if (customer.isEmpty()) 
+
+    if (customer.isEmpty())
         log.error("Id %d not in database.".formatted(newId));
     else {
         log.info("Removed Id %d from the database.".formatted(newId));
@@ -524,7 +473,7 @@ try (EntityManager entityManager = emf.createEntityManager();) {
     entityManager.getTransaction().begin();
     customer =  entityManager.merge(customer);
     entityManager.refresh(customer);
-    entityManager.getTransaction().commit();    
+    entityManager.getTransaction().commit();
 }
 
 log.info("AFTER MERGE+REFRESH "+customer.toString());

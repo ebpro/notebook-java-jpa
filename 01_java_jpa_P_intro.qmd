@@ -1,7 +1,9 @@
 ---
 title: 'TP JPA 01 : Introduction à Jakarta Persistence'
-description: Création d'entités JPA 
-categories:  
+subtitle: "Premiers pas avec JPA : Création et gestion d'entités"
+description: "Apprenez les bases de Jakarta Persistence API (JPA) en créant un projet Java simple avec des entités, en configurant l'EntityManager et en effectuant des opérations CRUD."
+image: _quarto-utils/MyMedia/images/optimized/taiki-ishikawa-PUXFKuVf_84-unsplash_java-400.webp
+categories:
   - Exercices
   - Java
   - JPA
@@ -9,7 +11,7 @@ categories:
 code-annotations: below
 provide_notes: true
 provide_slides: false
-jupyter: java-lts
+jupyter: java
 ---
 
 ## **Objectifs**
@@ -22,7 +24,7 @@ jupyter: java-lts
 ## **Étape 1 : Préparer l’environnement**
 
 Le TP utilisera une base de données H2 en mémoire pour simplifier la configuration.
-Vous basculerez vers une base de données réelle dans la suite. 
+Vous basculerez vers une base de données réelle dans la suite.
 
 https://repo1.maven.org/maven2/com/h2database/h2/2.3.232/h2-2.3.232.jar
 
@@ -32,7 +34,7 @@ java -cp h2*.jar \
         -webAllowOthers \
         -tcpAllowOthers \
         -pgAllowOthers \
-        -ifNotExists 
+        -ifNotExists
 ```
 
 lancer H2 pour accéder à la console web : http://localhost:8082 avec une base de données testdb et le user sa sans mot de passe.
@@ -171,7 +173,7 @@ lancer H2 pour accéder à la console web : http://localhost:8082 avec une base 
    import jakarta.persistence.Persistence;
 
    public class JpaUtil {
-       private static final EntityManagerFactory emf = 
+       private static final EntityManagerFactory emf =
            Persistence.createEntityManagerFactory("tpJakartaUnit");
 
        public static EntityManagerFactory getEntityManagerFactory() {
@@ -218,6 +220,6 @@ Ajoutez des personnes supplémentaires, des modifications et des suppressions po
 
 Créez l'entité suivante pour enrichir votre modèle :
 
- **`Book` :** 
+ **`Book` :**
    - Représente un livre avec un titre, un auteur, une année de publication, un ISBN et une description.
    - Expérimentez avec les annotations Jakarta Persistence pour la modélisation d'une entité sans association.

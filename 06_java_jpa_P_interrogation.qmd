@@ -1,7 +1,7 @@
 ---
 title: 'TP JPA : Interrogation avancée avec une bibliothèque universitaire'
 description: Mise en pratique des différentes techniques d'interrogation JPA
-categories:  
+categories:
   - Java
   - JPA
   - I211
@@ -9,8 +9,10 @@ categories:
 code-annotations: below
 provide_notes: true
 provide_slides: false
-jupyter: java-lts
+jupyter: java
 ---
+
+{{< include ./_init.qmd >}}
 
 ## Objectif
 
@@ -19,7 +21,7 @@ Illuster l'utilisation des identifiants, de l'héritage et des requêtes JPQL.
 
 ## Modèle de données
 
-Utilisez le projet : https://github.com/ebpro/sample-jpalibrary 
+Utilisez le projet : https://github.com/ebpro/sample-jpalibrary
 
 - Etudier le projet
 - Etudier le schéma relationnel généré
@@ -54,10 +56,10 @@ Utilisez le projet : https://github.com/ebpro/sample-jpalibrary
 
 ## Pattern Repository
 
-- Ajouter un repository pour gérer les différentes entités. 
+- Ajouter un repository pour gérer les différentes entités.
 - Mettez à jour et compléter si besoin les générateurs de données.
 
 ## (Facultatif) pour aller plus loin
 
-- Contrôler vos entités avec des Bean Validation : https://bruno.univ-tln.fr/notebooks-develop/notebook-java-beanvalidation/ 
+- Contrôler vos entités avec des Bean Validation : https://bruno.univ-tln.fr/notebooks-develop/notebook-java-beanvalidation/
 - Ajouter des tests unitaires et d'intégration

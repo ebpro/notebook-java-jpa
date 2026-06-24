@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<script src="02_java_jpa_L_associations_files/libs/clipboard/clipboard.min.js"></script>
+<script src="02_java_jpa_L_associations_files/libs/quarto-html/tabby.min.js"></script>
+<script src="02_java_jpa_L_associations_files/libs/quarto-html/popper.min.js"></script>
+<script src="02_java_jpa_L_associations_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="02_java_jpa_L_associations_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="02_java_jpa_L_associations_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="02_java_jpa_L_associations_files/libs/quarto-html/quarto-syntax-highlighting-597958c53c93a607afca12fd375c57ed.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="02_java_jpa_L_associations_files/libs/quarto-contrib/jquery-3.6.3/jquery-3.6.3.min.js"></script>
+<script src="02_java_jpa_L_associations_files/libs/quarto-contrib/code-fullscreen-1.0.0/code-fullscreen.js" defer="true"></script>
+<link href="02_java_jpa_L_associations_files/libs/quarto-contrib/code-fullscreen-1.0.0/code-fullscreen.css" rel="stylesheet">
+<script src="02_java_jpa_L_associations_files/libs/quarto-contrib/roughnotation-0.5.1/rough-notation.iife.js"></script>
+<script src="02_java_jpa_L_associations_files/libs/quarto-contrib/roughnotation-init-1.0.0/rough.js"></script>
+<link href="02_java_jpa_L_associations_files/libs/quarto-contrib/language-name/language-name.css" rel="stylesheet"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.26">
+
+  <meta name="author" content="Emmanuel BRUNO">
+  <meta name="dcterms.date" content="2026-02-01">
+  <title>Les associations entre entités avec JPA</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="02_java_jpa_L_associations_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="02_java_jpa_L_associations_files/libs/revealjs/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      { color: #24292e;  }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #24292e; } /* Normal */
+    code span.al { color: #ff5555; font-weight: bold; } /* Alert */
+    code span.an { color: #6a737d; } /* Annotation */
+    code span.at { color: #d73a49; } /* Attribute */
+    code span.bn { color: #005cc5; } /* BaseN */
+    code span.bu { color: #d73a49; } /* BuiltIn */
+    code span.cf { color: #d73a49; } /* ControlFlow */
+    code span.ch { color: #032f62; } /* Char */
+    code span.cn { color: #005cc5; } /* Constant */
+    code span.co { color: #6a737d; } /* Comment */
+    code span.cv { color: #6a737d; } /* CommentVar */
+    code span.do { color: #6a737d; } /* Documentation */
+    code span.dt { color: #d73a49; } /* DataType */
+    code span.dv { color: #005cc5; } /* DecVal */
+    code span.er { color: #ff5555; text-decoration: underline; } /* Error */
+    code span.ex { color: #d73a49; font-weight: bold; } /* Extension */
+    code span.fl { color: #005cc5; } /* Float */
+    code span.fu { color: #6f42c1; } /* Function */
+    code span.im { color: #032f62; } /* Import */
+    code span.in { color: #6a737d; } /* Information */
+    code span.kw { color: #d73a49; } /* Keyword */
+    code span.op { color: #24292e; } /* Operator */
+    code span.ot { color: #6f42c1; } /* Other */
+    code span.pp { color: #d73a49; } /* Preprocessor */
+    code span.re { color: #6a737d; } /* RegionMarker */
+    code span.sc { color: #005cc5; } /* SpecialChar */
+    code span.ss { color: #032f62; } /* SpecialString */
+    code span.st { color: #032f62; } /* String */
+    code span.va { color: #e36209; } /* Variable */
+    code span.vs { color: #032f62; } /* VerbatimString */
+    code span.wa { color: #ff5555; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="02_java_jpa_L_associations_files/libs/revealjs/dist/theme/quarto-6ddeab0dce94c286292371d370982d15.css">
+  <link rel="stylesheet" href="../_quarto-utils/reveal-custom.css">
+  <link href="02_java_jpa_L_associations_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="02_java_jpa_L_associations_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="02_java_jpa_L_associations_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="02_java_jpa_L_associations_files/libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="02_java_jpa_L_associations_files/libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
+  <link href="02_java_jpa_L_associations_files/libs/revealjs/plugin/verticator/verticator.css" rel="stylesheet">
+  <link href="02_java_jpa_L_associations_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+</head>
+<body class="quarto-light">
+<script src="mathjax-config.js"></script>
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" class="quarto-title-block center">
+  <h1 class="title">Les associations entre entités avec JPA</h1>
+  <p class="subtitle">Contrôles des relations entre entités avec JPA.</p>
+
+<div class="quarto-title-authors">
+<div class="quarto-title-author">
+<div class="quarto-title-author-name">
+<a href="https://bruno.univ-tln.fr">Emmanuel BRUNO</a> 
+</div>
+<div class="quarto-title-author-email">
+<a href="mailto:emmanuel.bruno@univ-tln.fr">emmanuel.bruno@univ-tln.fr</a>
+</div>
+        <p class="quarto-title-affiliation">
+            Université de Toulon
+          </p>
+        <p class="quarto-title-affiliation">
+            LIS UMR CNRS 7020
+          </p>
+    </div>
+</div>
+
+  <p class="date">2026-02-01</p>
+</section>
+<section id="environnement-et-reproductibilite" class="title-slide slide level2 tools-block content-visible center" data-when-profile="notes slides">
+<h2>Environnement et reproductibilite</h2>
+<p><strong>Jupyter Kernel:</strong> <code>java</code></p>
+<p>🖥️ Env Ubuntu 24.04.3 LTS / x86_64 • ☕ Java 25.0.1 (openjdk) • 🎯 Maven 3.9.12 • 🐳 Docker Client 29.1.5 / Server 29.2.1</p>
+<p>Ce support a été généré par Quarto : les cellules sont exécutées par le noyau indiqué lors du rendu.</p>
+<p>Certaines parties ont été rédigées avec l’assistance d’un modèle de langage ; le contenu a été relu et validé par l’auteur.</p>
+</section>
+
+<section id="types-de-relations" class="title-slide slide level2 center">
+<h2>Types de relations</h2>
+<ul>
+<li>Prise en charge complète: gestion des relations entre entités de différents types.</li>
+<li>Types de relations
+<ul>
+<li>One-to-One (Un-vers-Un)</li>
+<li>One-to-Many (Un-vers-Plusieurs)</li>
+<li>Many-to-Many (Plusieurs-vers-Plusieurs)</li>
+</ul></li>
+<li>Unidirectionnelle ou bidirectionnelle.</li>
+</ul>
+</section>
+
+<section id="one-to-one-1-1" class="title-slide slide level2 center">
+<h2>One To One (1-1)</h2>
+<ul>
+<li>1-1 en Java mais une seule relation</li>
+</ul>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div id="cell-fig-uml-onetoone" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="3">
+<div class="cell-output cell-output-display">
+<div id="fig-uml-onetoone" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-uml-onetoone-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img data-src="02_java_jpa_L_associations_files/figure-revealjs/fig-uml-onetoone-output-1.svg">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-uml-onetoone-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Un Customer a une Biography
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div id="fig-rel-onetoone" class="cell quarto-float quarto-figure quarto-figure-center" data-execution_count="4" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-rel-onetoone-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-rel-onetoone-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2
+</figcaption>
+</figure>
+</div>
+</div></div>
+<ul>
+<li>Pour cela, JPA propose :
+<ul>
+<li><a href="https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/embeddable">@Embeddable</a>: Indique que les membres d’une classe peuvent être persistés en tant qu’attributs de la classe qui les utilise.</li>
+<li><a href="https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/embedded">@Embedded</a>: Utilisé avec <code>@Embeddable</code> pour intégrer ses propriétés dans une autre entité</li>
+</ul></li>
+</ul>
+</section>
+
+<section id="un-client-a-une-et-une-seule-biographie" class="title-slide slide level2 smaller center">
+<h2>Un client a une et une seule biographie</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div id="cell-fig-class-embeddable" class="cell" data-filename="null" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="5">
+<div id="fig-class-embeddable" class="cell-output cell-output-display cell-output-markdown quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-class-embeddable-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<p>Error: failed to read file <code>/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_biography/Biography.java</code>: /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_biography/Biography.java</p>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-class-embeddable-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Embeddable.java
+</figcaption>
+</figure>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div id="f5119633" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="6">
+<div class="cell-output cell-output-display cell-output-markdown">
+<p>Error: failed to read file <code>/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_biography/Customer.java</code>: /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_biography/Customer.java</p>
+<p>Customer.java</p>
+</div>
+</div>
+</div></div>
+</section>
+
+<section id="persistence-de-lassociation" class="title-slide slide level2 center">
+<h2>Persistence de l’association</h2>
+<div id="6663f3bf" class="cell" data-tags="[]" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="8">
+<details class="code-fold">
+<summary>Creation et persistence d’un Customer</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" data-language-name-skip="true"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href=""></a><span class="kw">import</span> <span class="im">fr</span><span class="op">.</span><span class="im">univtln</span><span class="op">.</span><span class="im">bruno</span><span class="op">.</span><span class="im">demos</span><span class="op">.</span><span class="im">jpa</span><span class="op">.</span><span class="im">hello</span><span class="op">.</span><span class="im">samples</span><span class="op">.</span><span class="im">ex_biography</span><span class="op">.</span><span class="im">Customer</span><span class="op">;</span></span>
+<span id="cb2-2"><a href=""></a><span class="cf">try</span> <span class="op">(</span>EntityManager entityManager <span class="op">=</span> emf<span class="op">.</span><span class="fu">createEntityManager</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href=""></a>   entityManager<span class="op">.</span><span class="fu">getTransaction</span><span class="op">().</span><span class="fu">begin</span><span class="op">();</span></span>
+<span id="cb2-4"><a href=""></a></span>
+<span id="cb2-5"><a href=""></a>   Customer customer <span class="op">=</span> Customer<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">"Jim"</span><span class="op">);</span></span>
+<span id="cb2-6"><a href=""></a>   customer<span class="op">.</span><span class="fu">setBiography</span><span class="op">(</span>Biography<span class="op">.</span><span class="fu">builder</span><span class="op">()</span></span>
+<span id="cb2-7"><a href=""></a>      <span class="op">.</span><span class="fu">brief</span><span class="op">(</span><span class="st">"bla"</span><span class="op">)</span></span>
+<span id="cb2-8"><a href=""></a>      <span class="op">.</span><span class="fu">extended</span><span class="op">(</span><span class="st">"bla bla"</span><span class="op">)</span></span>
+<span id="cb2-9"><a href=""></a>      <span class="op">.</span><span class="fu">build</span><span class="op">());</span></span>
+<span id="cb2-10"><a href=""></a>   entityManager<span class="op">.</span><span class="fu">persist</span><span class="op">(</span>customer<span class="op">);</span></span>
+<span id="cb2-11"><a href=""></a></span>
+<span id="cb2-12"><a href=""></a>   entityManager<span class="op">.</span><span class="fu">getTransaction</span><span class="op">().</span><span class="fu">commit</span><span class="op">();</span></span>
+<span id="cb2-13"><a href=""></a><span class="op">}</span></span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>dans une seule relation</p>
+<div id="fig-table-onetoone" class="cell quarto-float quarto-figure quarto-figure-center" data-execution_count="9" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-table-onetoone-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-table-onetoone-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4
+</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="one-to-many-1-n" class="title-slide slide level2 center">
+<h2>One to Many (1-N)</h2>
+
+<img data-src="02_java_jpa_L_associations_files/figure-revealjs/fig-uml-onetomany-output-1.svg" class="r-stretch quarto-figure-center" id="fig-uml-onetomany"><p class="caption">
+Figure&nbsp;5: Une Order a plusieurs Line
+</p><div class="columns">
+<div class="column" style="width:50%;">
+<div id="232b3188" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="11">
+<div class="cell-output cell-output-display cell-output-markdown">
+<p>Error: failed to read file <code>/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_b/Line.java</code>: /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_b/Line.java</p>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div id="7c077bae" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="12">
+<div class="cell-output cell-output-display cell-output-markdown">
+<p>Error: failed to read file <code>/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_b/Order.java</code>: /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_b/Order.java</p>
+</div>
+</div>
+</div></div>
+<div id="fig-rel-onetomanyb" class="cell quarto-float quarto-figure quarto-figure-center" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-tags="[&quot;remove-input&quot;]" data-execution_count="13">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-rel-onetomanyb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-rel-onetomanyb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6
+</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="avec-deux-entités-1" class="title-slide slide level2 center">
+<h2>Avec deux entités</h2>
+<ul>
+<li>Dans le cas général :
+<ul>
+<li>L’attribut de type <code>Collection&lt;T&gt;</code> est annoté avec <code>@OneToMany</code>.</li>
+<li>Pour une relation bidirectionnelle, l’autre entité (de type <code>T</code>) est annotée avec <code>@ManyToOne</code>.</li>
+<li>L’attribut optionnel <code>mappedBy</code> indique le nom de l’attribut correspondant dans le type <code>T</code> si l’on souhaite une relation bidirectionnelle.</li>
+</ul></li>
+</ul>
+</section>
+
+<section id="to-n-à-deux-entités-13" class="title-slide slide level2 center">
+<h2>1 to N à deux entités (1/3)</h2>
+<div id="98c70f4f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="14">
+<div class="cell-output cell-output-display cell-output-markdown">
+<p>Error: failed to read file <code>/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_a/Order.java</code>: /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_a/Order.java</p>
+</div>
+</div>
+</section>
+
+<section id="to-n-à-deux-entités-23" class="title-slide slide level2 center">
+<h2>1 to N à deux entités (2/3)</h2>
+<div id="cf8436cc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="15">
+<div class="cell-output cell-output-display cell-output-markdown">
+<p>Error: failed to read file <code>/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_a/Line.java</code>: /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_onetomany_a/Line.java</p>
+</div>
+</div>
+</section>
+
+<section id="to-n-à-deux-entités-33" class="title-slide slide level2 center">
+<h2>1 to N à deux entités (3/3)</h2>
+<div id="66413341" class="cell" data-tags="[]" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="17">
+<div class="cell-output cell-output-stdout">
+<pre><code>22:35:15.037 [IJava-executor-0] INFO  notebook -- Order(id=1, date=2026-01-30T22:35:14.979378) [Line(id=1, product=Pen, price=1.0), Line(id=2, product=Scissor, price=8.0), Line(id=3, product=Paper, price=5.0)]</code></pre>
+</div>
+</div>
+<div id="fig-rel-onetomanya" class="cell quarto-float quarto-figure quarto-figure-center" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-tags="[&quot;remove-input&quot;]" data-execution_count="18">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-rel-onetomanya-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-rel-onetomanya-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7
+</figcaption>
+</figure>
+</div>
+<div id="fig-rel-onetomanya-query" class="cell quarto-float quarto-figure quarto-figure-center" data-execution_count="19" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-rel-onetomanya-query-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-rel-onetomanya-query-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8
+</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="many-to-many-n-m" class="title-slide slide level2 center">
+<h2>Many to Many (N-M)</h2>
+<ul>
+<li>@ManyToMany en Java Persistence API (JPA) :
+<ul>
+<li>Utilisée pour modéliser une relation many-to-many entre deux entités.</li>
+<li>La table d’association est générée et utilisée implicitement.</li>
+</ul></li>
+</ul>
+
+<img data-src="02_java_jpa_L_associations_files/figure-revealjs/fig-uml-manytomany-output-1.svg" class="r-stretch quarto-figure-center" id="fig-uml-manytomany"><p class="caption">
+Figure&nbsp;9: Un Customer a plusieurs adresses (qui peuvent être associées à d’autres)
+</p><div id="fig-rel-manytomany" class="cell quarto-float quarto-figure quarto-figure-center" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-tags="[&quot;remove-input&quot;]" data-execution_count="21">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-rel-manytomany-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-rel-manytomany-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10
+</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="many-to-many-12" class="title-slide slide level2 center">
+<h2>Many to Many (1/2)</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div id="7e8ab41f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="22">
+<div class="cell-output cell-output-display cell-output-markdown">
+<p>Error: failed to read file <code>/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_manytomany/Customer.java</code>: /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_manytomany/Customer.java</p>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div id="312c0a1c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}" data-execution_count="23">
+<div class="cell-output cell-output-display cell-output-markdown">
+<p>Error: failed to read file <code>/home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_manytomany/Address.java</code>: /home/jovyan/work/src/github/ebpro/sample-hellojpa/src/main/java/fr/univtln/bruno/demos/jpa/hello/samples/ex_associations/ex_manytomany/Address.java</p>
+</div>
+</div>
+</div></div>
+</section>
+
+<section id="many-to-many-22" class="title-slide slide level2 center">
+<h2>Many to Many (2/2)</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div id="fig-table-onetoone1" class="cell quarto-float quarto-figure quarto-figure-center" data-execution_count="26" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-table-onetoone1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-table-onetoone1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11
+</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<div id="fig-table-onetoone-3" class="cell quarto-float quarto-figure quarto-figure-center" data-execution_count="27" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-table-onetoone-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-table-onetoone-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12
+</figcaption>
+</figure>
+</div>
+</div></div>
+<div id="fig-table-onetoone-2" class="cell quarto-float quarto-figure quarto-figure-center" data-execution_count="28" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;java&quot;}}">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-table-onetoone-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>No JDBC connection available. Set system properties 'jdbc.url' (and optionally 'jdbc.user'/'jdbc.password'), or provide a Connection in the kernel environment.</code></pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-table-onetoone-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13
+</figcaption>
+</figure>
+</div>
+
+</section>
+    </div>
+  <div class="quarto-auto-generated-content" style="display: none;">
+<div class="footer footer-default">
+<p>E. Bruno - Les associations entre entités avec JPA</p>
+</div>
+</div></div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/verticator/verticator.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="02_java_jpa_L_associations_files/libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': false,
+'previewLinksAuto': false,
+'pdfSeparateFragments': true,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'jumpToSlide': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"8\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'chalkboard': {"buttons":true,"enabled":true},
+'verticator': {"themetag":"h1","color":"","inversecolor":"","skipuncounted":false,"clickable":true,"position":"auto","offset":"3vmin","autogenerate":true,"tooltip":false,"scale":1},
+'smaller': true,
+ 
+        // Display controls in the bottom right corner
+        controls: true,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'bottom-right',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'default',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: true,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'slide',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, RevealChalkboard, Verticator, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    <script id="quarto-html-after-body" type="application/javascript">
+      window.document.addEventListener("DOMContentLoaded", function (event) {
+        const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+        tabsets.forEach(function(tabset) {
+          const tabby = new Tabby('#' + tabset.id);
+        });
+        const isCodeAnnotation = (el) => {
+          for (const clz of el.classList) {
+            if (clz.startsWith('code-annotation-')) {                     
+              return true;
+            }
+          }
+          return false;
+        }
+        const onCopySuccess = function(e) {
+          // button target
+          const button = e.trigger;
+          // don't keep focus
+          button.blur();
+          // flash "checked"
+          button.classList.add('code-copy-button-checked');
+          var currentTitle = button.getAttribute("title");
+          button.setAttribute("title", "Copié");
+          let tooltip;
+          if (window.bootstrap) {
+            button.setAttribute("data-bs-toggle", "tooltip");
+            button.setAttribute("data-bs-placement", "left");
+            button.setAttribute("data-bs-title", "Copié");
+            tooltip = new bootstrap.Tooltip(button, 
+              { trigger: "manual", 
+                customClass: "code-copy-button-tooltip",
+                offset: [0, -8]});
+            tooltip.show();    
+          }
+          setTimeout(function() {
+            if (tooltip) {
+              tooltip.hide();
+              button.removeAttribute("data-bs-title");
+              button.removeAttribute("data-bs-toggle");
+              button.removeAttribute("data-bs-placement");
+            }
+            button.setAttribute("title", currentTitle);
+            button.classList.remove('code-copy-button-checked');
+          }, 1000);
+          // clear code selection
+          e.clearSelection();
+        }
+        const getTextToCopy = function(trigger) {
+          const outerScaffold = trigger.parentElement.cloneNode(true);
+          const codeEl = outerScaffold.querySelector('code');
+          for (const childEl of codeEl.children) {
+            if (isCodeAnnotation(childEl)) {
+              childEl.remove();
+            }
+          }
+          return codeEl.innerText;
+        }
+        const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+          text: getTextToCopy
+        });
+        clipboard.on('success', onCopySuccess);
+        if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+          const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+            text: getTextToCopy,
+            container: window.document.getElementById('quarto-embedded-source-code-modal')
+          });
+          clipboardModal.on('success', onCopySuccess);
+        }
+          var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+          var mailtoRegex = new RegExp(/^mailto:/);
+            var filterRegex = new RegExp('/' + window.location.host + '/');
+          var isInternal = (href) => {
+              return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+          }
+          // Inspect non-navigation links and adorn them if external
+         var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+          for (var i=0; i<links.length; i++) {
+            const link = links[i];
+            if (!isInternal(link.href)) {
+              // undo the damage that might have been done by quarto-nav.js in the case of
+              // links that we want to consider external
+              if (link.dataset.originalHref !== undefined) {
+                link.href = link.dataset.originalHref;
+              }
+            }
+          }
+        function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+          const config = {
+            allowHTML: true,
+            maxWidth: 500,
+            delay: 100,
+            arrow: false,
+            appendTo: function(el) {
+                return el.closest('section.slide') || el.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'light-border',
+            placement: 'bottom-start',
+          };
+          if (contentFn) {
+            config.content = contentFn;
+          }
+          if (onTriggerFn) {
+            config.onTrigger = onTriggerFn;
+          }
+          if (onUntriggerFn) {
+            config.onUntrigger = onUntriggerFn;
+          }
+            config['offset'] = [0,0];
+            config['maxWidth'] = 700;
+          window.tippy(el, config); 
+        }
+        const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+        for (var i=0; i<noterefs.length; i++) {
+          const ref = noterefs[i];
+          tippyHover(ref, function() {
+            // use id or data attribute instead here
+            let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+            try { href = new URL(href).hash; } catch {}
+            const id = href.replace(/^#\/?/, "");
+            const note = window.document.getElementById(id);
+            if (note) {
+              return note.innerHTML;
+            } else {
+              return "";
+            }
+          });
+        }
+        const findCites = (el) => {
+          const parentEl = el.parentElement;
+          if (parentEl) {
+            const cites = parentEl.dataset.cites;
+            if (cites) {
+              return {
+                el,
+                cites: cites.split(' ')
+              };
+            } else {
+              return findCites(el.parentElement)
+            }
+          } else {
+            return undefined;
+          }
+        };
+        var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+        for (var i=0; i<bibliorefs.length; i++) {
+          const ref = bibliorefs[i];
+          const citeInfo = findCites(ref);
+          if (citeInfo) {
+            tippyHover(citeInfo.el, function() {
+              var popup = window.document.createElement('div');
+              citeInfo.cites.forEach(function(cite) {
+                var citeDiv = window.document.createElement('div');
+                citeDiv.classList.add('hanging-indent');
+                citeDiv.classList.add('csl-entry');
+                var biblioDiv = window.document.getElementById('ref-' + cite);
+                if (biblioDiv) {
+                  citeDiv.innerHTML = biblioDiv.innerHTML;
+                }
+                popup.appendChild(citeDiv);
+              });
+              return popup.innerHTML;
+            });
+          }
+        }
+      });
+      </script>
+    
+
+</body></html>
